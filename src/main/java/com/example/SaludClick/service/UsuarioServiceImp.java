@@ -27,8 +27,8 @@ public class UsuarioServiceImp implements IUsuarioService {
 
 	@Override
 	public Optional<Usuario> buscarPorEmail(String email) { //buscar por email
-		return usuarioRepository.findByEmail(email)
-				;}
+		return usuarioRepository.findByEmail(email);
+				}
 
 	@Override
 	public List<Usuario> listar() {     //listar los usuarios
