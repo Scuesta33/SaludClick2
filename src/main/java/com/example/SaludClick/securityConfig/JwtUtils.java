@@ -51,7 +51,6 @@ public class JwtUtils {
 		  getDecodedToken(token);
 		  return true;
 	  } catch (JWTVerificationException e) {
-		  System.out.println("token invalidoo: " + e.getMessage());
 		  return false;
 	  }
   }
