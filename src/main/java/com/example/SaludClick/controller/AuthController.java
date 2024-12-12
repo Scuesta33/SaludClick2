@@ -1,3 +1,4 @@
+
 package com.example.SaludClick.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,37 +36,32 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthLoginRequestDTO loginRequest) {
-        // Verifica las credenciales y autentica al usuario
+    public ResponseEntity<?> login(@RequestBody AuthLoginRequestDTO loginRequest) {
         try {
-            // Autenticación usando el AuthenticationManager
+            // Autenticación con las credenciales proporcionadas
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getContrasena())
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getEmail(),
+                    loginRequest.getContrasena()
+                )
             );
 
-            // Si la autenticación es exitosa, obtenemos los detalles del usuario
+            // Cargar los detalles del usuario
             UserDetails userDetails = usuarioDetailsServiceImp.loadUserByUsername(loginRequest.getEmail());
 
-            // Obtén el usuario de la base de datos
+            // Buscar el usuario en la base de datos
             Usuario usuario = usuarioServiceImp.buscarPorEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            // Genera el token usando el método adecuado de JwtUtils
+            // Generar el token JWT
             String token = jwtUtils.createToken(authentication, usuario.getIdUsuario());
 
-            // Construye la respuesta con el token y los detalles del usuario
-            AuthResponseDTO response = new AuthResponseDTO(
-                token,
-                usuario.getEmail(),
-                usuario.getNombre(),
-                usuario.getRol().name()
-            );
+            // Crear la respuesta con el token y los detalles del usuario
+            AuthResponseDTO response = new AuthResponseDTO(token, usuario.getEmail(), usuario.getNombre(), usuario.getRol().name());
 
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
-            // Devuelve un error 401 si la autenticación falla
-            return ResponseEntity.status(401).body(new AuthResponseDTO("Credenciales incorrectas", null, null, null));
+            return ResponseEntity.status(401).body("Credenciales inválidas");
         }
     }
 }

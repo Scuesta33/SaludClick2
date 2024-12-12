@@ -1,10 +1,13 @@
+
 package com.example.SaludClick.securityConfig;
 
-import java.io.IOException;
-import java.util.Collections;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,51 +18,52 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtils jwtUtils;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils) {
+    private final JwtUtils jwtUtils;
+    private final UserDetailsService userDetailsService;
+
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, @Lazy UserDetailsService userDetailsService) {
         this.jwtUtils = jwtUtils;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        // Extraer el token del encabezado Authorization
         String token = extractTokenFromHeader(request);
 
         if (token != null) {
             try {
-                // Validar el token y obtener el JWT decodificado
                 DecodedJWT decodedJWT = jwtUtils.validateToken(token);
-
-                // Extraer el username (subject) del JWT
                 String username = jwtUtils.extractUsername(decodedJWT);
 
-                // Crear la autenticación y establecerla en el contexto de seguridad
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        username, null, Collections.emptyList());
+                        userDetails.getUsername(), null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
+                logger.info("Authentication set for user: {}", username);
             } catch (Exception e) {
-                // Si el token es inválido o ha expirado, se limpia el contexto de seguridad
-                SecurityContextHolder.clearContext();
+                logger.error("Token validation failed", e);
             }
+        } else {
+            logger.warn("No token found in request header");
         }
 
-        // Continuar con el filtro
         chain.doFilter(request, response);
     }
 
-    // Método para extraer el token de la cabecera Authorization
     private String extractTokenFromHeader(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7); // Retornar el token sin el prefijo "Bearer "
+            return authorizationHeader.substring(7);
         }
 
         return null;

@@ -19,7 +19,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
 
-    // Constructor para inyectar dependencias
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
@@ -27,17 +26,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Deshabilitamos CSRF con el nuevo formato
+        http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/usuarios/registrar").permitAll() // Permite registro sin autenticación
-                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll() // Permite login sin autenticación
-                .requestMatchers("/medico/**").hasRole("MEDICO")  // Médicos solo
-                .requestMatchers("/paciente/**").hasRole("PACIENTE")  // Pacientes solo
-                .anyRequest().authenticated() // Los demás endpoints requieren autenticación
+                .requestMatchers(HttpMethod.POST, "/usuarios/registrar").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers("/medico/**").hasRole("MEDICO")
+                .requestMatchers("/paciente/**").hasRole("PACIENTE")
+                .requestMatchers("/citas/**").hasRole("PACIENTE") // Ensure this line is present
+                .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Añadimos el filtro JWT
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build(); // Usamos `http.build()` para construir la configuración
+        return http.build();
     }
 
     @Bean
@@ -48,7 +48,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService) // Configuración del UserDetailsService
+        authenticationManagerBuilder.userDetailsService(userDetailsService)
                                      .passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }

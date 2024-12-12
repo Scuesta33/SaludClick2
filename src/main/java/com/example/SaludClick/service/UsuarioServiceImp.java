@@ -3,6 +3,7 @@ package com.example.SaludClick.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class UsuarioServiceImp implements IUsuarioService {
      private UsuarioRepository usuarioRepository;
      
      @Autowired
+     @Lazy
      private PasswordEncoder passwordEncoder;
 	@Override
 	

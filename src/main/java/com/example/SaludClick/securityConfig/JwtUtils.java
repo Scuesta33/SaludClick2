@@ -36,7 +36,8 @@ public class JwtUtils {
     public String createToken(Authentication authentication, Long userId) {
         Algorithm algorithm = Algorithm.HMAC256(privateKey);
 
-        String username = authentication.getPrincipal().toString();
+        // Aquí el principal ya debería ser el email, ya que es lo que usas para autenticar al usuario
+        String username = authentication.getPrincipal().toString();  // Este es el email.
 
         String authorities = authentication.getAuthorities()
                 .stream()
@@ -45,7 +46,7 @@ public class JwtUtils {
 
         return JWT.create()
                 .withIssuer(userGenerator)
-                .withSubject(username)
+                .withSubject(username)  // El 'subject' es el email.
                 .withClaim("authorities", authorities)
                 .withClaim("id", userId)
                 .withIssuedAt(new Date())
@@ -54,7 +55,7 @@ public class JwtUtils {
                 .withNotBefore(new Date(System.currentTimeMillis())) // Válido desde ahora
                 .sign(algorithm);
     }
-
+ 
     /**
      * Valida un token JWT y devuelve su representación decodificada.
      *
