@@ -22,11 +22,11 @@ public class UsuarioDetailsServiceImp implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        Optional<Usuario> optionalUsuario = usuarioServiceImp.buscarPorEmail(username);
+    public UserDetails loadUserByUsername(String email) {
+        Optional<Usuario> optionalUsuario = usuarioServiceImp.buscarPorEmail(email);
 
         if (optionalUsuario.isEmpty()) {
-            throw new RuntimeException("Usuario no encontrado con el email: " + username);
+            throw new RuntimeException("Usuario no encontrado con el email: " + email);
         }
 
         Usuario usuario = optionalUsuario.get();

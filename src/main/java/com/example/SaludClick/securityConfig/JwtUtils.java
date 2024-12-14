@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.JWT;
@@ -37,7 +38,7 @@ public class JwtUtils {
         Algorithm algorithm = Algorithm.HMAC256(privateKey);
 
         // Aquí el principal ya debería ser el email, ya que es lo que usas para autenticar al usuario
-        String username = authentication.getPrincipal().toString();  // Este es el email.
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();  // Asegúrate de que esto es un String (correo)
 
         String authorities = authentication.getAuthorities()
                 .stream()
