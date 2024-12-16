@@ -118,18 +118,90 @@ public class CitaController {
         return new ResponseEntity<>(citas, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Cita> actualizarCita(@PathVariable Long id, @RequestBody Cita cita) {
-        logger.info("Updating Cita with id: {}", id);
-        cita.setIdCita(id);
-        Cita citaActualizada = citaService.actualizarCita(cita);
-        return new ResponseEntity<>(citaActualizada, HttpStatus.OK);
+
+@PutMapping("/{id}")
+public ResponseEntity<Cita> actualizarCita(@PathVariable Long id, @RequestBody CitaDTO citaDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Object principal = authentication.getPrincipal();
+
+    if (principal instanceof UserDetails) {
+        UserDetails userDetails = (UserDetails) principal;
+        Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
+
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            if (usuario.getRol() == Usuario.Rol.PACIENTE || usuario.getRol() == Usuario.Rol.MEDICO) {
+                logger.info("Updating Cita with id: {}", id);
+                Optional<Cita> citaOpt = citaService.obtenerCitaPorId(id);
+                if (citaOpt.isPresent()) {
+                    Cita cita = citaOpt.get();
+                    cita.setFecha(citaDTO.getFecha());
+                    cita.setEstado(citaDTO.getEstado());
+                    cita.setPaciente(usuario); // Set the authenticated user as the paciente
+
+                    // Verificar y asignar el médico usando el nombre
+                    if (citaDTO.getMedicoNombre() != null) {
+                        List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
+                        if (medicos.isEmpty()) {
+                            logger.warn("No se encontró ningún médico con el nombre: {}", citaDTO.getMedicoNombre());
+                            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si no se encuentra el médico
+                        } else if (medicos.size() > 1) {
+                            logger.warn("Se encontraron múltiples médicos con el nombre: {}", citaDTO.getMedicoNombre());
+                            return new ResponseEntity<>(HttpStatus.CONFLICT); // Conflicto si hay múltiples médicos
+                        } else {
+                            Usuario medico = medicos.get(0); // Asignar el único médico encontrado
+                            if (medico.getRol() == Usuario.Rol.MEDICO) {
+                                cita.setMedico(medico);
+                            } else {
+                                logger.warn("El usuario con nombre {} no tiene el rol de MEDICO", citaDTO.getMedicoNombre());
+                                return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si no es médico
+                            }
+                        }
+                    } else {
+                        logger.warn("Información del médico está incompleta o faltante");
+                        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si falta información del médico
+                    }
+
+                    Cita citaActualizada = citaService.actualizarCita(cita);
+                    return new ResponseEntity<>(citaActualizada, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    } else {
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
+}
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarCita(@PathVariable Long id) {
-        logger.info("Deleting Cita with id: {}", id);
-        citaService.eliminarCita(id);
-        return ResponseEntity.noContent().build();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
+
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                if (usuario.getRol() == Usuario.Rol.PACIENTE || usuario.getRol() == Usuario.Rol.MEDICO) {
+                    logger.info("Deleting Cita with id: {}", id);
+                    citaService.eliminarCita(id);
+                    return ResponseEntity.noContent().build();
+                } else {
+                    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
     }
 }
