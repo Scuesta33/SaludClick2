@@ -1,10 +1,17 @@
 package com.example.SaludClick.controller;
 
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -37,10 +44,47 @@ public ResponseEntity<Usuario> traerUsuarioPorEmail(@PathVariable String email) 
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));  // Lanza una excepción si no se encuentra
 }
 
-@PutMapping("/actualizar")
-public ResponseEntity<Usuario> actualizarUsuario(@Valid @RequestBody Usuario usuario) {
-	 return ResponseEntity.ok(usuarioServiceImp.actualizar(usuario));
+@PatchMapping("/actualizar")
+public ResponseEntity<Usuario> actualizarUsuarioParcial(@RequestBody Map<String, Object> updates) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String email = ((UserDetails) authentication.getPrincipal()).getUsername();
+    Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(email);
+
+    if (usuarioOpt.isPresent()) {
+        Usuario usuarioExistente = usuarioOpt.get();
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "nombre":
+                    usuarioExistente.setNombre((String) value);
+                    break;
+                case "email":
+                    usuarioExistente.setEmail((String) value);
+                    break;
+                case "contrasena":
+                    usuarioExistente.setContrasena((String) value);
+                    break;
+                case "telefono":
+                    usuarioExistente.setTelefono((String) value);
+                    break;
+                case "direccion":
+                    usuarioExistente.setDireccion((String) value);
+                    break;
+                case "activo":
+                    usuarioExistente.setActivo((Boolean) value);
+                    break;
+                case "rol":
+                    usuarioExistente.setRol(Usuario.Rol.valueOf((String) value));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Campo no válido: " + key);
+            }
+        });
+        return ResponseEntity.ok(usuarioServiceImp.actualizar(usuarioExistente));
+    } else {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+    }
 }
+
 
 @DeleteMapping("/eliminar/{idUsuario}")
 public ResponseEntity<Void>eliminarUsuario(@PathVariable Long idUsuario){
