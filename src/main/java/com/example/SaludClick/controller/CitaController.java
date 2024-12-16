@@ -1,4 +1,4 @@
-   package com.example.SaludClick.controller;
+ package com.example.SaludClick.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,25 +59,27 @@ public class CitaController {
                     cita.setEstado(citaDTO.getEstado());
                     cita.setPaciente(usuario);
 
-                    // Verificar y asignar el médico usando el email
-                    if (citaDTO.getMedicoEmail() != null) {
-                        Optional<Usuario> medicoOpt = usuarioServiceImp.buscarPorEmail(citaDTO.getMedicoEmail());
-                        if (medicoOpt.isPresent()) {
-                            Usuario medico = medicoOpt.get();
-                            // Validar que el médico tiene el rol "MEDICO"
+                    // Verificar y asignar el médico usando el nombre
+                    if (citaDTO.getMedicoNombre() != null) {
+                        List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
+                        if (medicos.isEmpty()) {
+                            logger.warn("No se encontró ningún médico con el nombre: {}", citaDTO.getMedicoNombre());
+                            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si no se encuentra el médico
+                        } else if (medicos.size() > 1) {
+                            logger.warn("Se encontraron múltiples médicos con el nombre: {}", citaDTO.getMedicoNombre());
+                            return new ResponseEntity<>(HttpStatus.CONFLICT); // Conflicto si hay múltiples médicos
+                        } else {
+                            Usuario medico = medicos.get(0); // Asignar el único médico encontrado
                             if (medico.getRol() == Usuario.Rol.MEDICO) {
                                 cita.setMedico(medico);
                             } else {
-                                logger.warn("El usuario con email {} no tiene el rol de MEDICO", citaDTO.getMedicoEmail());
+                                logger.warn("El usuario con nombre {} no tiene el rol de MEDICO", citaDTO.getMedicoNombre());
                                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si no es médico
                             }
-                        } else {
-                            logger.warn("Medico no encontrado con email: {}", citaDTO.getMedicoEmail());
-                            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si no se encuentra el médico
                         }
                     } else {
-                        logger.warn("Medico information is missing or incomplete");
-                        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si falta la información del médico
+                        logger.warn("Información del médico está incompleta o faltante");
+                        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Bad Request si falta información del médico
                     }
 
                     // Crear la cita
