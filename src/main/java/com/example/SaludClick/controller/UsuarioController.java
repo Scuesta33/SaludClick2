@@ -85,17 +85,42 @@ public ResponseEntity<Usuario> actualizarUsuarioParcial(@RequestBody Map<String,
     }
 }
 
-
 @DeleteMapping("/eliminar/{idUsuario}")
-public ResponseEntity<Void>eliminarUsuario(@PathVariable Long idUsuario){
-	try {
-		usuarioServiceImp.eliminar(idUsuario);
-        return ResponseEntity.noContent().build();
+public ResponseEntity<String> eliminarUsuario(@PathVariable Long idUsuario) {
+    // Obtener el email del usuario autenticado desde el contexto de seguridad
+    String emailUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+
+    try {
+        // Buscar al usuario autenticado por su email
+        Optional<Usuario> usuarioAutenticadoOpt = usuarioServiceImp.buscarPorEmail(emailUsuarioAutenticado);
+
+        // Lanzar excepción si no existe el usuario autenticado
+        if (usuarioAutenticadoOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no autenticado");
+        }
+
+        Usuario usuarioAutenticado = usuarioAutenticadoOpt.get();
+
+        // Verificar que el ID del usuario autenticado coincide con el ID a eliminar
+        if (!usuarioAutenticado.getIdUsuario().equals(idUsuario)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar este usuario");
+        }
+
+        // Proceder a eliminar el usuario
+        usuarioServiceImp.eliminar(idUsuario);
+        return ResponseEntity.ok("Usuario ha sido eliminado.");
+    } catch (ResponseStatusException e) {
+        throw e; // Repropagar excepciones específicas de respuesta
     } catch (Exception e) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado", e);
     }
+}
+
+
+
+
 	
 }
 
 
-}
+
