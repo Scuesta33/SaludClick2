@@ -96,22 +96,16 @@ public class JwtUtils {
         return decodedJWT.getClaim(claimName);
     }
 
-    /**
-     * Devuelve todos los claims presentes en un token JWT decodificado.
-     *
-     * @param decodedJWT Objeto DecodedJWT
-     * @return Mapa de todos los claims (clave-valor)
-     */
+   
+     // Devuelve todos los claims presentes en un token JWT decodificado.
+    
     public Map<String, Claim> returnAllClaims(DecodedJWT decodedJWT) {
         return decodedJWT.getClaims();
     }
 
-    /**
-     * Extrae el ID del usuario del token JWT decodificado.
-     *
-     * @param decodedJWT Objeto DecodedJWT
-     * @return ID del usuario como Long
-     */
+    // Extrae el ID del usuario del token JWT decodificado.
+     
+    
     public Long extractUserId(DecodedJWT decodedJWT) {
         return decodedJWT.getClaim("id").asLong();
     }
