@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/medico/**").hasRole("MEDICO")
                 .requestMatchers("/paciente/**").hasRole("PACIENTE")
                 .requestMatchers("/citas/**").hasRole("PACIENTE")
+                .requestMatchers("/usuarios/datos").hasAnyRole("PACIENTE", "MEDICO") // Ensure this line is present
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
