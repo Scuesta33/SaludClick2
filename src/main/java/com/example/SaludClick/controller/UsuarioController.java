@@ -1,6 +1,7 @@
 
 package com.example.SaludClick.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -100,26 +101,33 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/eliminar/{idUsuario}")
-    public ResponseEntity<String> eliminarUsuario(@PathVariable Long idUsuario) {
+    public ResponseEntity<Map<String, String>> eliminarUsuario(@PathVariable Long idUsuario) {
+        // Obtener el email del usuario autenticado desde el contexto de seguridad
         String emailUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
 
         try {
+            // Buscar al usuario autenticado por su email
             Optional<Usuario> usuarioAutenticadoOpt = usuarioServiceImp.buscarPorEmail(emailUsuarioAutenticado);
 
+            // Lanzar excepción si no existe el usuario autenticado
             if (usuarioAutenticadoOpt.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no autenticado");
             }
 
             Usuario usuarioAutenticado = usuarioAutenticadoOpt.get();
 
+            // Verificar que el ID del usuario autenticado coincide con el ID a eliminar
             if (!usuarioAutenticado.getIdUsuario().equals(idUsuario)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar este usuario");
             }
 
+            // Proceder a eliminar el usuario
             usuarioServiceImp.eliminar(idUsuario);
-            return ResponseEntity.ok("Usuario ha sido eliminado.");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuario ha sido eliminado.");
+            return ResponseEntity.ok(response);
         } catch (ResponseStatusException e) {
-            throw e;
+            throw e; // Repropagar excepciones específicas de respuesta
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado", e);
         }
