@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.SaludClick.model.DisponibilidadMedico;
 
 public interface DisponibilidadRepository extends JpaRepository<DisponibilidadMedico, Long> {
-    List<DisponibilidadMedico> findByMedico_IdUsuario(Long idUsuario);
+    List<DisponibilidadMedico> findByMedico_IdUsuario(Long idMedico);
 }

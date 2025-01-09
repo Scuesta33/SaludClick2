@@ -17,7 +17,7 @@ public class DisponibilidadService {
 	        return disponibilidadRepository.save(disponibilidadMedico);
 	    }
 
-	    public List<DisponibilidadMedico> obtenerDisponibilidadPorMedico(Long idUsuario) {
-	        return disponibilidadRepository.findByMedico_IdUsuario(idUsuario);
+	    public List<DisponibilidadMedico> obtenerDisponibilidadPorMedico(Long idMedico) {
+	        return disponibilidadRepository.findByMedico_IdUsuario(idMedico);
 	    }
 }

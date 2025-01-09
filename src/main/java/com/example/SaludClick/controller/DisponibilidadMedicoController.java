@@ -32,25 +32,31 @@ public class DisponibilidadMedicoController {
     @Autowired
     private UsuarioServiceImp usuarioServiceImp;
 
+    @PostMapping("/crear")
+    public ResponseEntity<?> crearDisponibilidad(@RequestBody List<DisponibilidadMedico> disponibilidades) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = ((UserDetails) authentication.getPrincipal()).getUsername();
+        System.out.println("Usuario autenticado: " + email);
+        Optional<Usuario> medicoOpt = usuarioServiceImp.buscarPorEmail(email);
 
-@PostMapping("/crear")
-public ResponseEntity<?> crearDisponibilidad(@RequestBody List<DisponibilidadMedico> disponibilidades) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = ((UserDetails) authentication.getPrincipal()).getUsername();
-    Optional<Usuario> medicoOpt = usuarioServiceImp.buscarPorEmail(email);
-
-    if (medicoOpt.isPresent() && medicoOpt.get().getRol() == Usuario.Rol.MEDICO) {
-        Usuario medico = medicoOpt.get();
-        for (DisponibilidadMedico disponibilidad : disponibilidades) {
-            disponibilidad.setMedico(medico);
-            disponibilidadService.crearDisponibilidad(disponibilidad);
+        if (medicoOpt.isPresent()) {
+            Usuario medico = medicoOpt.get();
+            System.out.println("Rol del usuario: " + medico.getRol());
+            if (medico.getRol() == Usuario.Rol.MEDICO) {
+                for (DisponibilidadMedico disponibilidad : disponibilidades) {
+                    disponibilidad.setMedico(medico);
+                    disponibilidad.setHoraInicio(disponibilidad.getHoraInicio().minusHours(1));
+                    disponibilidad.setHoraFin(disponibilidad.getHoraFin().minusHours(1));
+                    disponibilidadService.crearDisponibilidad(disponibilidad);
+                }
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    } else {
-        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
-}
-
 
     @GetMapping("/medico/{idMedico}")
     public ResponseEntity<List<DisponibilidadMedico>> obtenerDisponibilidadPorMedico(@PathVariable Long idMedico) {

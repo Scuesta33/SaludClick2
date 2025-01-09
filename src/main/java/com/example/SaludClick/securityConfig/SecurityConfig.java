@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/citas/**").hasRole("PACIENTE")
                 .requestMatchers("/usuarios/datos").hasAnyRole("PACIENTE", "MEDICO") // Ensure this line is present
                 .requestMatchers(HttpMethod.DELETE, "/usuarios/eliminar/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/disponibilidad/crear").hasRole("MEDICO")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
