@@ -22,6 +22,7 @@ import com.example.SaludClick.service.UsuarioServiceImp;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 
+import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +48,19 @@ public class CitaController {
     @Autowired
     private DisponibilidadService disponibilidadService;
 
+    // Función para convertir el día de la semana
+    public String convertirDiaALaSemanaEspañol(DayOfWeek dayOfWeek) {
+        switch (dayOfWeek) {
+            case MONDAY: return "Lunes";
+            case TUESDAY: return "Martes";
+            case WEDNESDAY: return "Miércoles";
+            case THURSDAY: return "Jueves";
+            case FRIDAY: return "Viernes";
+            case SATURDAY: return "Sábado";
+            case SUNDAY: return "Domingo";
+            default: return "";
+        }
+    }
     @PostMapping("/crear")
     public ResponseEntity<Cita> crearCita(@Valid @RequestBody CitaDTO citaDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -68,8 +82,12 @@ public class CitaController {
                     Usuario medico = medicos.get(0);
                     List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(medico.getIdUsuario());
 
+                    // Convierte el día de la cita de inglés a español
+                    String diaEnEspañol = convertirDiaALaSemanaEspañol(citaDTO.getFecha().getDayOfWeek());
+
+                    // Ahora compara el día en español
                     boolean isAvailable = disponibilidades.stream().anyMatch(d ->
-                        d.getDiaSemana().equals(citaDTO.getFecha().getDayOfWeek().toString()) &&
+                        d.getDiaSemana().equals(diaEnEspañol) &&
                         !citaDTO.getFecha().toLocalTime().isBefore(d.getHoraInicio()) &&
                         !citaDTO.getFecha().toLocalTime().isAfter(d.getHoraFin())
                     );
@@ -99,6 +117,7 @@ public class CitaController {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Cita> obtenerCita(@PathVariable Long id) {
