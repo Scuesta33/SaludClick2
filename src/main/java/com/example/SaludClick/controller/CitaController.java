@@ -23,7 +23,9 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,8 +63,13 @@ public class CitaController {
             default: return "";
         }
     }
+    
+
+
+    
+
     @PostMapping("/crear")
-    public ResponseEntity<Cita> crearCita(@Valid @RequestBody CitaDTO citaDTO) {
+    public ResponseEntity<?> crearCita(@Valid @RequestBody CitaDTO citaDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
@@ -70,53 +77,65 @@ public class CitaController {
             UserDetails userDetails = (UserDetails) principal;
             Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
 
-            if (usuarioOpt.isPresent() && usuarioOpt.get().getRol() == Usuario.Rol.PACIENTE) {
+            if (usuarioOpt.isPresent()) {
                 Usuario usuario = usuarioOpt.get();
+                if (usuario.getRol() != Usuario.Rol.PACIENTE) {
+                    return new ResponseEntity<>("El usuario no tiene permisos suficientes para crear una cita", HttpStatus.FORBIDDEN);
+                }
+
                 Cita cita = new Cita();
-                cita.setFecha(citaDTO.getFecha().atZone(ZoneId.of("UTC")).toLocalDateTime());
+                
+                // Obtener la fecha original
+                LocalDateTime fechaOriginal = citaDTO.getFecha();
+                
+                // Sumar una hora a la fecha, pero solo si no se cruza al siguiente día
+                LocalDateTime nuevaFecha = fechaOriginal.plusHours(1);
+                if (nuevaFecha.toLocalDate().isEqual(fechaOriginal.toLocalDate())) {
+                    cita.setFecha(nuevaFecha); // Solo ajusta la fecha si sigue dentro del mismo día
+                } else {
+                    return new ResponseEntity<>("La cita no puede ser ajustada a un día diferente", HttpStatus.BAD_REQUEST);
+                }
+
                 cita.setEstado(citaDTO.getEstado());
                 cita.setPaciente(usuario);
 
                 List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
-                if (medicos.size() == 1 && medicos.get(0).getRol() == Usuario.Rol.MEDICO) {
-                    Usuario medico = medicos.get(0);
-                    List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(medico.getIdUsuario());
-
-                    // Convierte el día de la cita de inglés a español
-                    String diaEnEspañol = convertirDiaALaSemanaEspañol(citaDTO.getFecha().getDayOfWeek());
-
-                    // Ahora compara el día en español
-                    boolean isAvailable = disponibilidades.stream().anyMatch(d ->
-                        d.getDiaSemana().equals(diaEnEspañol) &&
-                        !citaDTO.getFecha().toLocalTime().isBefore(d.getHoraInicio()) &&
-                        !citaDTO.getFecha().toLocalTime().isAfter(d.getHoraFin())
-                    );
-
-                    if (isAvailable) {
-                        cita.setMedico(medico);
-                        Cita nuevaCita = citaService.crearCita(cita);
-
-                        // Send email notification
-                        try {
-                            emailService.sendCitaCreationEmail(usuario.getEmail(), cita.getFecha().toString(), "Location");
-                        } catch (MessagingException e) {
-                            logger.error("Error sending email", e);
-                        }
-
-                        return new ResponseEntity<>(nuevaCita, HttpStatus.CREATED);
-                    } else {
-                        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-                    }
-                } else {
-                    return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+                if (medicos.size() != 1 || medicos.get(0).getRol() != Usuario.Rol.MEDICO) {
+                    return new ResponseEntity<>("No se encuentra un medico con ese nombre", HttpStatus.BAD_REQUEST);
                 }
+
+                Usuario medico = medicos.get(0);
+                List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(medico.getIdUsuario());
+
+                String diaEnEspañol = convertirDiaALaSemanaEspañol(citaDTO.getFecha().getDayOfWeek());
+                boolean isAvailable = disponibilidades.stream().anyMatch(d ->
+                    d.getDiaSemana().equals(diaEnEspañol) &&
+                    !citaDTO.getFecha().toLocalTime().isBefore(d.getHoraInicio()) &&
+                    !citaDTO.getFecha().toLocalTime().isAfter(d.getHoraFin())
+                );
+
+                if (!isAvailable) {
+                    return new ResponseEntity<>("El médico no está disponible en esa fecha y hora", HttpStatus.BAD_REQUEST);
+                }
+
+                cita.setMedico(medico);
+                Cita nuevaCita = citaService.crearCita(cita);
+
+                try {
+                    emailService.sendCitaCreationEmail(usuario.getEmail(), cita.getFecha().toString(), "Location");
+                } catch (MessagingException e) {
+                    logger.error("Error sending email notification to user {} for cita {}: {}", usuario.getEmail(), cita.getIdCita(), e.getMessage());
+                }
+
+                return new ResponseEntity<>(nuevaCita, HttpStatus.CREATED);
             } else {
-                return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+                return new ResponseEntity<>("Usuario no encontrado", HttpStatus.BAD_REQUEST);
             }
         } else {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("No autenticado", HttpStatus.UNAUTHORIZED);
         }
     }
+
 
 
     @GetMapping("/{id}")
