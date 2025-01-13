@@ -26,7 +26,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -149,10 +151,14 @@ public class CitaController {
         });
     }
 
-   
+
+
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> actualizarCita(@PathVariable Long id, @RequestBody CitaDTO citaDTO) {
+    public ResponseEntity<Map<String, String>> actualizarCita(@PathVariable Long id, @RequestBody CitaDTO citaDTO) {
+        logger.info("Datos recibidos para actualizar la cita: id={}, fecha={}, estado={}, medicoNombre={}",
+                    citaDTO.getId(), citaDTO.getFecha(), citaDTO.getEstado(), citaDTO.getMedicoNombre());
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
@@ -176,17 +182,21 @@ public class CitaController {
                             List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
                             if (medicos.isEmpty()) {
                                 logger.warn("No se encontró ningún médico con el nombre: {}", citaDTO.getMedicoNombre());
-                                return new ResponseEntity<>("Medico not found", HttpStatus.BAD_REQUEST); // Bad Request si no se encuentra el médico
+                                Map<String, String> response = new HashMap<>();
+                                response.put("error", "Medico not found");
+                                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // Bad Request si no se encuentra el médico
                             } else if (medicos.size() > 1) {
                                 logger.warn("Se encontraron múltiples médicos con el nombre: {}", citaDTO.getMedicoNombre());
-                                return new ResponseEntity<>("Multiple medicos found", HttpStatus.CONFLICT); // Conflicto si hay múltiples médicos
+                                Map<String, String> response = new HashMap<>();
+                                response.put("error", "Multiple medicos found");
+                                return new ResponseEntity<>(response, HttpStatus.CONFLICT); // Conflicto si hay múltiples médicos
                             } else {
                                 Usuario medico = medicos.get(0); // Asignar el único médico encontrado
                                 if (medico.getRol() == Usuario.Rol.MEDICO) {
                                     List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(medico.getIdUsuario());
 
                                     boolean isAvailable = disponibilidades.stream().anyMatch(d ->
-                                        d.getDiaSemana().equals(citaDTO.getFecha().getDayOfWeek().toString()) &&
+                                        d.getDiaSemana().equals(convertirDiaALaSemanaEspañol(citaDTO.getFecha().getDayOfWeek())) &&
                                         !citaDTO.getFecha().toLocalTime().isBefore(d.getHoraInicio()) &&
                                         !citaDTO.getFecha().toLocalTime().isAfter(d.getHoraFin())
                                     );
@@ -194,16 +204,22 @@ public class CitaController {
                                     if (isAvailable) {
                                         cita.setMedico(medico);
                                     } else {
-                                        return new ResponseEntity<>("Medico is not available at the selected time", HttpStatus.BAD_REQUEST);
+                                        Map<String, String> response = new HashMap<>();
+                                        response.put("error", "Medico is not available at the selected time");
+                                        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                                     }
                                 } else {
                                     logger.warn("El usuario con nombre {} no tiene el rol de MEDICO", citaDTO.getMedicoNombre());
-                                    return new ResponseEntity<>("User is not a medico", HttpStatus.BAD_REQUEST); // Bad Request si no es médico
+                                    Map<String, String> response = new HashMap<>();
+                                    response.put("error", "User is not a medico");
+                                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // Bad Request si no es médico
                                 }
                             }
                         } else {
                             logger.warn("Información del médico está incompleta o faltante");
-                            return new ResponseEntity<>("Medico information is incomplete or missing", HttpStatus.BAD_REQUEST); // Bad Request si falta información del médico
+                            Map<String, String> response = new HashMap<>();
+                            response.put("error", "Medico information is incomplete or missing");
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // Bad Request si falta información del médico
                         }
 
                         Cita citaActualizada = citaService.actualizarCita(cita);
@@ -215,20 +231,32 @@ public class CitaController {
                             logger.error("Error sending email", e);
                         }
 
-                        return new ResponseEntity<>("Cita updated successfully", HttpStatus.OK);
+                        Map<String, String> response = new HashMap<>();
+                        response.put("message", "Cita updated successfully");
+                        return new ResponseEntity<>(response, HttpStatus.OK);
                     } else {
-                        return new ResponseEntity<>("Cita not found", HttpStatus.NOT_FOUND);
+                        Map<String, String> response = new HashMap<>();
+                        response.put("error", "Cita not found");
+                        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
                     }
                 } else {
-                    return new ResponseEntity<>("Forbidden", HttpStatus.FORBIDDEN);
+                    Map<String, String> response = new HashMap<>();
+                    response.put("error", "Forbidden");
+                    return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
                 }
             } else {
-                return new ResponseEntity<>("Forbidden", HttpStatus.FORBIDDEN);
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Forbidden");
+                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
             }
         } else {
-            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Unauthorized");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
     }
+    
+   
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarCita(@PathVariable Long id) {
