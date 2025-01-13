@@ -269,6 +269,7 @@ public class CitaController {
         List<Cita> citas = citaService.listarCitas();
         List<CitaDTO> citaDTOs = citas.stream().map(cita -> {
             CitaDTO dto = new CitaDTO();
+            dto.setId(cita.getIdCita());
             dto.setFecha(cita.getFecha());
             dto.setEstado(cita.getEstado());
             dto.setMedicoNombre(cita.getMedico().getNombre()); // Asegúrate de que el nombre del médico se está asignando correctamente

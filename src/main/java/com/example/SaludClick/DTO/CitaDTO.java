@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 import com.example.SaludClick.model.Cita.EstadoCita;
 
 public class CitaDTO {
-    private LocalDateTime fecha;
+	private Long id;
+	private LocalDateTime fecha;
     private EstadoCita estado;
     private String medicoNombre; // Solo el email del médico
 	public LocalDateTime getFecha() {
@@ -25,6 +26,12 @@ public class CitaDTO {
 	}
 	public void setMedicoNombre(String medicoNombre) {
 		this.medicoNombre = medicoNombre;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
 	}
 	
 
