@@ -63,4 +63,10 @@ public class DisponibilidadMedicoController {
         List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(idMedico);
         return new ResponseEntity<>(disponibilidades, HttpStatus.OK);
     }
+    
+    @GetMapping("/todas")
+    public ResponseEntity<List<DisponibilidadMedico>> obtenerTodasLasDisponibilidades() {
+        List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerTodasLasDisponibilidades();
+        return new ResponseEntity<>(disponibilidades, HttpStatus.OK);
+    }
 }

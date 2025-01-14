@@ -20,4 +20,9 @@ public class DisponibilidadService {
 	    public List<DisponibilidadMedico> obtenerDisponibilidadPorMedico(Long idMedico) {
 	        return disponibilidadRepository.findByMedico_IdUsuario(idMedico);
 	    }
+	    
+	    
+	    public List<DisponibilidadMedico> obtenerTodasLasDisponibilidades() {
+	        return disponibilidadRepository.findAll();
+	    }
 }
