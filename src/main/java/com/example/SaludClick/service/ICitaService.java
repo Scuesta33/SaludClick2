@@ -15,5 +15,7 @@ import com.example.SaludClick.model.Cita;
 	    List<Cita> listarCitas();
 	    Cita actualizarCita(Cita cita);
 	    void eliminarCita(Long id);
+	    List<Cita> listarCitasPorPaciente(String emailPaciente);
+	    List<Cita> listarCitasPorMedico(String emailMedico);
 	}
 

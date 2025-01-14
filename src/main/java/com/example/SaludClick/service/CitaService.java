@@ -45,6 +45,17 @@ public void eliminarCita(Long id) {
 	
 }
 
+@Override
+public List<Cita> listarCitasPorPaciente(String emailPaciente) {
+	return citaRepository.findByPaciente_Email(emailPaciente);
+}
+
+@Override
+public List<Cita> listarCitasPorMedico(String emailMedico) {
+	return citaRepository.findByPaciente_Email(emailMedico);
+}
+
+
 
  
 }
