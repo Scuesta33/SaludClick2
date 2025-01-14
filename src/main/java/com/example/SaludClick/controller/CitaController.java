@@ -173,25 +173,37 @@ public class CitaController {
                     Optional<Cita> citaOpt = citaService.obtenerCitaPorId(id);
                     if (citaOpt.isPresent()) {
                         Cita cita = citaOpt.get();
-                        cita.setFecha(citaDTO.getFecha().atZone(ZoneId.of("UTC")).toLocalDateTime());
-                        cita.setEstado(citaDTO.getEstado());
-                        cita.setPaciente(usuario); // Set the authenticated user as the paciente
+                        
+                        // Obtener la fecha original
+                        LocalDateTime fechaOriginal = citaDTO.getFecha();
+                        
+                        // Sumar una hora a la fecha, pero solo si no se cruza al siguiente día
+                        LocalDateTime nuevaFecha = fechaOriginal.plusHours(1);
+                        if (nuevaFecha.toLocalDate().isEqual(fechaOriginal.toLocalDate())) {
+                            cita.setFecha(nuevaFecha); // Solo ajusta la fecha si sigue dentro del mismo día
+                        } else {
+                            Map<String, String> response = new HashMap<>();
+                            response.put("error", "La cita no puede ser ajustada a un día diferente");
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                        }
 
-                        // Verificar y asignar el médico usando el nombre
+                        cita.setEstado(citaDTO.getEstado());
+                        cita.setPaciente(usuario);
+
                         if (citaDTO.getMedicoNombre() != null) {
                             List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
                             if (medicos.isEmpty()) {
                                 logger.warn("No se encontró ningún médico con el nombre: {}", citaDTO.getMedicoNombre());
                                 Map<String, String> response = new HashMap<>();
                                 response.put("error", "Medico not found");
-                                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // Bad Request si no se encuentra el médico
+                                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                             } else if (medicos.size() > 1) {
                                 logger.warn("Se encontraron múltiples médicos con el nombre: {}", citaDTO.getMedicoNombre());
                                 Map<String, String> response = new HashMap<>();
                                 response.put("error", "Multiple medicos found");
-                                return new ResponseEntity<>(response, HttpStatus.CONFLICT); // Conflicto si hay múltiples médicos
+                                return new ResponseEntity<>(response, HttpStatus.CONFLICT);
                             } else {
-                                Usuario medico = medicos.get(0); // Asignar el único médico encontrado
+                                Usuario medico = medicos.get(0);
                                 if (medico.getRol() == Usuario.Rol.MEDICO) {
                                     List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(medico.getIdUsuario());
 
@@ -212,19 +224,18 @@ public class CitaController {
                                     logger.warn("El usuario con nombre {} no tiene el rol de MEDICO", citaDTO.getMedicoNombre());
                                     Map<String, String> response = new HashMap<>();
                                     response.put("error", "User is not a medico");
-                                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // Bad Request si no es médico
+                                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                                 }
                             }
                         } else {
                             logger.warn("Información del médico está incompleta o faltante");
                             Map<String, String> response = new HashMap<>();
                             response.put("error", "Medico information is incomplete or missing");
-                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // Bad Request si falta información del médico
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                         }
 
-                        Cita citaActualizada = citaService.actualizarCita(cita);
+                        citaService.actualizarCita(cita);
 
-                        // Send email notification
                         try {
                             emailService.sendCitaUpdateEmail(usuario.getEmail(), cita.getFecha().toString(), "Location");
                         } catch (MessagingException e) {
@@ -255,6 +266,8 @@ public class CitaController {
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
     }
+
+
     
    
 
