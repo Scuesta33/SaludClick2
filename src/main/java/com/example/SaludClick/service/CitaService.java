@@ -52,7 +52,7 @@ public List<Cita> listarCitasPorPaciente(String emailPaciente) {
 
 @Override
 public List<Cita> listarCitasPorMedico(String emailMedico) {
-	return citaRepository.findByPaciente_Email(emailMedico);
+	return citaRepository.findByMedico_Email(emailMedico);
 }
 
 

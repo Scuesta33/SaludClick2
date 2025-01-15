@@ -9,6 +9,7 @@ public class CitaDTO {
 	private LocalDateTime fecha;
     private EstadoCita estado;
     private String medicoNombre; // Solo el email del médico
+    private String pacienteNombre; // Solo el email del paciente
 	public LocalDateTime getFecha() {
 		return fecha;
 	}
@@ -32,6 +33,12 @@ public class CitaDTO {
 	}
 	public void setId(Long id) {
 		this.id = id;
+	}
+	public String getPacienteNombre() {
+		return pacienteNombre;
+	}
+	public void setPacienteNombre(String pacienteNombre) {
+		this.pacienteNombre = pacienteNombre;
 	}
 	
 

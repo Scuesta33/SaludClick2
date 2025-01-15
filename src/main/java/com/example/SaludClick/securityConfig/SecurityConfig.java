@@ -31,16 +31,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/usuarios/registrar").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers("/medico/**").hasRole("MEDICO")
                 .requestMatchers("/paciente/**").hasRole("PACIENTE")
-                .requestMatchers("/citas/**").hasRole("PACIENTE")
-                .requestMatchers("/usuarios/datos").hasAnyRole("PACIENTE", "MEDICO") // Ensure this line is present
+                .requestMatchers("/citas/**").hasAnyRole("PACIENTE", "MEDICO")
+                .requestMatchers("/usuarios/datos").hasAnyRole("PACIENTE", "MEDICO") 
                 .requestMatchers(HttpMethod.DELETE, "/usuarios/eliminar/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/disponibilidad/crear").hasRole("MEDICO")
+                .requestMatchers("/citas/consultas").hasRole("MEDICO")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

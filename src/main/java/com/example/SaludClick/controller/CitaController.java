@@ -286,7 +286,7 @@ public class CitaController {
                     logger.info("Deleting Cita with id: {}", id);
                     citaService.eliminarCita(id);
 
-                    // Send email notification
+                    
                     try {
                         emailService.sendCitaDeletionEmail(usuario.getEmail());
                     } catch (MessagingException e) {
@@ -336,6 +336,45 @@ public class CitaController {
                 }).collect(Collectors.toList());
 
                 return new ResponseEntity<>(citaDTOs, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+    
+    @GetMapping("/consultas")
+    public ResponseEntity<List<CitaDTO>> listarConsultas() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
+
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                logger.info("Usuario autenticado: {}, Rol: {}", usuario.getEmail(), usuario.getRol());
+
+                List<Cita> consultas;
+
+                if (usuario.getRol() == Usuario.Rol.MEDICO) {
+                    consultas = citaService.listarCitasPorMedico(usuario.getEmail());
+                } else {
+                    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                }
+
+                List<CitaDTO> consultaDTOs = consultas.stream().map(cita -> {
+                    CitaDTO dto = new CitaDTO();
+                    dto.setId(cita.getIdCita());
+                    dto.setFecha(cita.getFecha());
+                    dto.setEstado(cita.getEstado());
+                    dto.setPacienteNombre(cita.getPaciente().getNombre());
+                    return dto;
+                }).collect(Collectors.toList());
+
+                return new ResponseEntity<>(consultaDTOs, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }

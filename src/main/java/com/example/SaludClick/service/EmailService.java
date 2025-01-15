@@ -21,7 +21,7 @@ public class EmailService {
     public void sendCitaCreationEmail(String toEmail, String citaFecha, String citaLocation) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
+        citaLocation = "Sevilla";
         try {
         	helper.setFrom("SaludClick <scuesta33@gmail.com>");
             helper.setTo(toEmail);
@@ -42,7 +42,7 @@ public class EmailService {
     public void sendCitaUpdateEmail(String toEmail, String citaFecha, String citaLocation) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
+        citaLocation = "Sevilla";
         try {
         	helper.setFrom("SaludClick <scuesta33@gmail.com>");
             helper.setTo(toEmail);
