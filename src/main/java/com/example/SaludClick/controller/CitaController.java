@@ -153,11 +153,13 @@ public class CitaController {
 
 
 
+    
+  
 
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> actualizarCita(@PathVariable Long id, @RequestBody CitaDTO citaDTO) {
-        logger.info("Datos recibidos para actualizar la cita: id={}, fecha={}, estado={}, medicoNombre={}",
-                    citaDTO.getId(), citaDTO.getFecha(), citaDTO.getEstado(), citaDTO.getMedicoNombre());
+        logger.info("Datos recibidos para actualizar la cita: id={}, fecha={}, estado={}",
+                    citaDTO.getId(), citaDTO.getFecha(), citaDTO.getEstado());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
@@ -173,11 +175,23 @@ public class CitaController {
                     Optional<Cita> citaOpt = citaService.obtenerCitaPorId(id);
                     if (citaOpt.isPresent()) {
                         Cita cita = citaOpt.get();
-                        
-                        // Obtener la fecha original
+
+                        // Si el usuario es paciente, debe ser el dueño de la cita
+                        if (usuario.getRol() == Usuario.Rol.PACIENTE && !cita.getPaciente().getIdUsuario().equals(usuario.getIdUsuario())) {
+                            Map<String, String> response = new HashMap<>();
+                            response.put("error", "Forbidden: No puede modificar esta cita");
+                            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+                        }
+
+                        // Si el usuario es médico, debe ser el médico asignado a la cita
+                        if (usuario.getRol() == Usuario.Rol.MEDICO && !cita.getMedico().getIdUsuario().equals(usuario.getIdUsuario())) {
+                            Map<String, String> response = new HashMap<>();
+                            response.put("error", "Forbidden: No puede modificar esta cita");
+                            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+                        }
+
+                        // Actualizar fecha
                         LocalDateTime fechaOriginal = citaDTO.getFecha();
-                        
-                        // Sumar una hora a la fecha, pero solo si no se cruza al siguiente día
                         LocalDateTime nuevaFecha = fechaOriginal.plusHours(1);
                         if (nuevaFecha.toLocalDate().isEqual(fechaOriginal.toLocalDate())) {
                             cita.setFecha(nuevaFecha); // Solo ajusta la fecha si sigue dentro del mismo día
@@ -187,9 +201,12 @@ public class CitaController {
                             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                         }
 
-                        cita.setEstado(citaDTO.getEstado());
-                        cita.setPaciente(usuario);
+                        // Actualizar estado solo si el usuario es médico
+                        if (usuario.getRol() == Usuario.Rol.MEDICO) {
+                            cita.setEstado(citaDTO.getEstado());
+                        }
 
+                        // Si no se proporciona un nombre de médico, el médico actual se mantiene
                         if (citaDTO.getMedicoNombre() != null) {
                             List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
                             if (medicos.isEmpty()) {
@@ -227,13 +244,9 @@ public class CitaController {
                                     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                                 }
                             }
-                        } else {
-                            logger.warn("Información del médico está incompleta o faltante");
-                            Map<String, String> response = new HashMap<>();
-                            response.put("error", "Medico information is incomplete or missing");
-                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                         }
 
+                        // Guardar cambios en la cita
                         citaService.actualizarCita(cita);
 
                         try {
@@ -266,9 +279,6 @@ public class CitaController {
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
     }
-
-
-    
    
 
     @DeleteMapping("/{id}")
