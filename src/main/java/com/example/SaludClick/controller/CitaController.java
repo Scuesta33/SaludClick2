@@ -152,10 +152,6 @@ public class CitaController {
     }
 
 
-
-    
-  
-
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> actualizarCita(@PathVariable Long id, @RequestBody CitaDTO citaDTO) {
         logger.info("Datos recibidos para actualizar la cita: id={}, fecha={}, estado={}",
@@ -194,28 +190,33 @@ public class CitaController {
                         LocalDateTime fechaOriginal = citaDTO.getFecha();
                         LocalDateTime nuevaFecha = fechaOriginal.plusHours(1);
                         if (nuevaFecha.toLocalDate().isEqual(fechaOriginal.toLocalDate())) {
-                            cita.setFecha(nuevaFecha); // Solo ajusta la fecha si sigue dentro del mismo día
+                            cita.setFecha(nuevaFecha);
                         } else {
                             Map<String, String> response = new HashMap<>();
                             response.put("error", "La cita no puede ser ajustada a un día diferente");
                             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                         }
 
-                        // Actualizar estado solo si el usuario es médico
+                        // Si el usuario es médico, puede modificar el estado
                         if (usuario.getRol() == Usuario.Rol.MEDICO) {
+                            // Si citaDTO.getEstado() es un String:
+                            // cita.setEstado(Cita.EstadoCita.valueOf(citaDTO.getEstado()));  // Convierte el String a un valor del enum
+                            
+                            // Si citaDTO.getEstado() ya es del tipo EstadoCita:
                             cita.setEstado(citaDTO.getEstado());
+                        } else {
+                            // Si el usuario es paciente, se asegura de que el estado sea PENDIENTE
+                            cita.setEstado(Cita.EstadoCita.PENDIENTE);  // Establecer a PENDIENTE
                         }
 
                         // Si no se proporciona un nombre de médico, el médico actual se mantiene
                         if (citaDTO.getMedicoNombre() != null) {
                             List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
                             if (medicos.isEmpty()) {
-                                logger.warn("No se encontró ningún médico con el nombre: {}", citaDTO.getMedicoNombre());
                                 Map<String, String> response = new HashMap<>();
                                 response.put("error", "Medico not found");
                                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                             } else if (medicos.size() > 1) {
-                                logger.warn("Se encontraron múltiples médicos con el nombre: {}", citaDTO.getMedicoNombre());
                                 Map<String, String> response = new HashMap<>();
                                 response.put("error", "Multiple medicos found");
                                 return new ResponseEntity<>(response, HttpStatus.CONFLICT);
@@ -224,7 +225,7 @@ public class CitaController {
                                 if (medico.getRol() == Usuario.Rol.MEDICO) {
                                     List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(medico.getIdUsuario());
 
-                                    boolean isAvailable = disponibilidades.stream().anyMatch(d ->
+                                    boolean isAvailable = disponibilidades.stream().anyMatch(d -> 
                                         d.getDiaSemana().equals(convertirDiaALaSemanaEspañol(citaDTO.getFecha().getDayOfWeek())) &&
                                         !citaDTO.getFecha().toLocalTime().isBefore(d.getHoraInicio()) &&
                                         !citaDTO.getFecha().toLocalTime().isAfter(d.getHoraFin())
@@ -238,7 +239,6 @@ public class CitaController {
                                         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                                     }
                                 } else {
-                                    logger.warn("El usuario con nombre {} no tiene el rol de MEDICO", citaDTO.getMedicoNombre());
                                     Map<String, String> response = new HashMap<>();
                                     response.put("error", "User is not a medico");
                                     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -270,15 +270,24 @@ public class CitaController {
                 }
             } else {
                 Map<String, String> response = new HashMap<>();
-                response.put("error", "Forbidden");
-                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+                response.put("error", "Unauthorized");
+                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("error", "Unauthorized");
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
+
+        // This line is unreachable, but it's a good practice to have a fallback return statement
+        Map<String, String> fallbackResponse = new HashMap<>();
+        fallbackResponse.put("error", "Unexpected error");
+        return new ResponseEntity<>(fallbackResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+
+    
+  
+
+    
+
    
 
     @DeleteMapping("/{id}")
