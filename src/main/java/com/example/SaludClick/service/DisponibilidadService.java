@@ -25,4 +25,8 @@ public class DisponibilidadService {
 	    public List<DisponibilidadMedico> obtenerTodasLasDisponibilidades() {
 	        return disponibilidadRepository.findAll();
 	    }
+	    
+	    public void eliminarDisponibilidad(Long id) {
+	        disponibilidadRepository.deleteById(id);
+	    } 
 }

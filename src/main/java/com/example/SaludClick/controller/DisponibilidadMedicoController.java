@@ -3,6 +3,7 @@ package com.example.SaludClick.controller;
 import java.util.Optional;
 
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,15 +59,42 @@ public class DisponibilidadMedicoController {
         }
     }
 
-    @GetMapping("/medico/{idMedico}")
-    public ResponseEntity<List<DisponibilidadMedico>> obtenerDisponibilidadPorMedico(@PathVariable Long idMedico) {
-        List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(idMedico);
-        return new ResponseEntity<>(disponibilidades, HttpStatus.OK);
+    @GetMapping("/medico")
+    public ResponseEntity<List<DisponibilidadMedico>> obtenerDisponibilidadPorMedico() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
+
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                if (usuario.getRol() == Usuario.Rol.MEDICO) {
+                    List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerDisponibilidadPorMedico(usuario.getIdUsuario());
+                    
+                    // Ajustar las horas antes de devolver las disponibilidades
+                    disponibilidades.forEach(disponibilidad -> {
+                        disponibilidad.setHoraInicio(disponibilidad.getHoraInicio().plusHours(1));
+                        disponibilidad.setHoraFin(disponibilidad.getHoraFin().plusHours(1));
+                    });
+                    
+                    return new ResponseEntity<>(disponibilidades, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
     }
     
-    @GetMapping("/todas")
-    public ResponseEntity<List<DisponibilidadMedico>> obtenerTodasLasDisponibilidades() {
-        List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerTodasLasDisponibilidades();
-        return new ResponseEntity<>(disponibilidades, HttpStatus.OK);
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarDisponibilidad(@PathVariable Long id) {
+        disponibilidadService.eliminarDisponibilidad(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
