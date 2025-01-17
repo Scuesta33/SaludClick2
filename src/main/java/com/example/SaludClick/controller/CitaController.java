@@ -153,6 +153,7 @@ public class CitaController {
 
 
 
+
 @PutMapping("/{id}")
 public ResponseEntity<Map<String, String>> actualizarCita(@PathVariable Long id, @RequestBody CitaDTO citaDTO) {
     logger.info("Datos recibidos para actualizar la cita: id={}, fecha={}, estado={}",
@@ -254,8 +255,10 @@ public ResponseEntity<Map<String, String>> actualizarCita(@PathVariable Long id,
 
                         if (cita.getEstado() == Cita.EstadoCita.ACEPTADA) {
                             emailService.sendCitaUpdateEmail(toEmail, citaFecha, citaLocation);
+                            emailService.sendCitaAcceptanceEmail(toEmail, citaFecha, citaLocation);
                         } else if (cita.getEstado() == Cita.EstadoCita.RECHAZADA) {
                             emailService.sendCitaDeletionEmail(toEmail);
+                            emailService.sendCitaRejectionEmail(toEmail);
                         } else {
                             emailService.sendCitaUpdateEmail(toEmail, citaFecha, citaLocation);
                         }
@@ -288,6 +291,7 @@ public ResponseEntity<Map<String, String>> actualizarCita(@PathVariable Long id,
     fallbackResponse.put("error", "Unexpected error");
     return new ResponseEntity<>(fallbackResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 }
+
 
 
 

@@ -160,4 +160,47 @@ public class EmailService {
             throw new MessagingException("Error al enviar el correo de recordatorio de cita", e);
         }
     }
+    
+
+public void sendCitaAcceptanceEmail(String toEmail, String citaFecha, String citaLocation) throws MessagingException {
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    citaLocation = "Sevilla";
+    try {
+        helper.setFrom("SaludClick <scuesta33@gmail.com>");
+        helper.setTo(toEmail);
+        helper.setSubject("Cita Aceptada");
+        helper.setText("<h1>¡Tu cita ha sido aceptada!</h1>" +
+                "<p>Fecha de la cita: <strong>" + citaFecha + "</strong></p>" +
+                "<p>Ubicación: " + citaLocation + "</p>", true);
+
+        mailSender.send(message);
+        logger.info("Correo de aceptación de cita enviado a: " + toEmail);
+
+    } catch (MessagingException e) {
+        logger.error("Error al enviar el correo de aceptación de cita a " + toEmail, e);
+        throw new MessagingException("Error al enviar el correo de aceptación de cita", e);
+    }
+}
+
+public void sendCitaRejectionEmail(String toEmail) throws MessagingException {
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+    try {
+        helper.setFrom("SaludClick <scuesta33@gmail.com>");
+        helper.setTo(toEmail);
+        helper.setSubject("Cita Rechazada");
+        helper.setText("<h1>Tu cita ha sido rechazada</h1>" +
+                "<p>Tu cita ha sido rechazada exitosamente.</p>", true);
+
+        mailSender.send(message);
+        logger.info("Correo de rechazo de cita enviado a: " + toEmail);
+
+    } catch (MessagingException e) {
+        logger.error("Error al enviar el correo de rechazo de cita a " + toEmail, e);
+        throw new MessagingException("Error al enviar el correo de rechazo de cita", e);
+    }
+}
+
 }
