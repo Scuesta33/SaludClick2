@@ -27,13 +27,7 @@ public class JwtUtils {
     @Value("${security.jwt.user.generator}")
     private String userGenerator; // Generador del token (issuer)
 
-    /**
-     * Genera un token JWT basado en los detalles de la autenticación y el ID de usuario.
-     *
-     * @param authentication Objeto de autenticación del usuario
-     * @param userId          ID del usuario autenticado
-     * @return Token JWT generado
-     */
+  
     public String createToken(Authentication authentication, Long userId) {
         Algorithm algorithm = Algorithm.HMAC256(privateKey);
 
@@ -53,16 +47,11 @@ public class JwtUtils {
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 1800000)) // Expira en 30 minutos
                 .withJWTId(UUID.randomUUID().toString())
-                .withNotBefore(new Date(System.currentTimeMillis())) // Válido desde ahora
+                .withNotBefore(new Date(System.currentTimeMillis())) 
                 .sign(algorithm);
     }
  
-    /**
-     * Valida un token JWT y devuelve su representación decodificada.
-     *
-     * @param token Token JWT a validar
-     * @return Objeto DecodedJWT con los datos decodificados
-     */
+   
     public DecodedJWT validateToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(privateKey);
@@ -75,23 +64,11 @@ public class JwtUtils {
         }
     }
 
-    /**
-     * Extrae el nombre de usuario (subject) de un token JWT decodificado.
-     *
-     * @param decodedJWT Objeto DecodedJWT
-     * @return Nombre de usuario extraído del token
-     */
+  
     public String extractUsername(DecodedJWT decodedJWT) {
         return decodedJWT.getSubject();
     }
 
-    /**
-     * Obtiene un claim específico del token JWT decodificado.
-     *
-     * @param decodedJWT Objeto DecodedJWT
-     * @param claimName  Nombre del claim a extraer
-     * @return Claim específico del token
-     */
     public Claim getSpecificClaim(DecodedJWT decodedJWT, String claimName) {
         return decodedJWT.getClaim(claimName);
     }

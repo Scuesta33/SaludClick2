@@ -19,12 +19,12 @@ public class HistorialCita {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long idHistorial;
 
-  @ManyToOne // Indicates that many HistorialCita records can belong to one Cita
-  @JoinColumn(name = "id_cita", nullable = false) // Foreign key to Cita
+  @ManyToOne 
+  @JoinColumn(name = "id_cita", nullable = false) 
   private Cita cita;
 
-  @ManyToOne // Indicates that many HistorialCita records can belong to one Usuario
-  @JoinColumn(name = "id_usuario", nullable = false) // Foreign key to Usuario
+  @ManyToOne 
+  @JoinColumn(name = "id_usuario", nullable = false) 
   private Usuario usuario;
 
   @Temporal(TemporalType.TIMESTAMP)
@@ -32,7 +32,7 @@ public class HistorialCita {
 
   private String estado;
 
-  @Column(length = 500) // You can adjust length as per your requirement
+  @Column(length = 500) 
   private String notas;
 
   // Default constructor
@@ -40,7 +40,7 @@ public class HistorialCita {
     super();
   }
 
-  // Constructor with fields
+  
   public HistorialCita(Long idHistorial, Cita cita, Usuario usuario, Date fechaHora, String estado, String notas) {
     super();
     this.idHistorial = idHistorial;
@@ -51,7 +51,7 @@ public class HistorialCita {
     this.notas = notas;
   }
 
-  // Getters and Setters
+  
   public Long getIdHistorial() {
     return idHistorial;
   }

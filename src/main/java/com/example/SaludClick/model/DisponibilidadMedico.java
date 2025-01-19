@@ -16,25 +16,25 @@ public class DisponibilidadMedico {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idDisponibilidad;
 
-    @ManyToOne(optional = false) // Ensures this field is mandatory
-    @JoinColumn(name = "id_medico", nullable = false) // Foreign key to Usuario
+    @ManyToOne(optional = false) 
+    @JoinColumn(name = "id_medico", nullable = false) 
     private Usuario medico;
 
-    @Column(nullable = false) // Ensures the day of the week is mandatory
+    @Column(nullable = false) 
     private String diaSemana;
 
-    @Column(nullable = false) // Ensures the start time is mandatory
+    @Column(nullable = false) 
     private LocalTime horaInicio;
 
-    @Column(nullable = false) // Ensures the end time is mandatory
+    @Column(nullable = false) 
     private LocalTime horaFin;
 
-    // Default constructor
+    
     public DisponibilidadMedico() {
         super();
     }
 
-    // Constructor with fields
+    
     public DisponibilidadMedico(Long idDisponibilidad, Usuario medico, String diaSemana, LocalTime horaInicio, LocalTime horaFin) {
         super();
         this.idDisponibilidad = idDisponibilidad;
@@ -44,7 +44,7 @@ public class DisponibilidadMedico {
         this.horaFin = horaFin;
     }
 
-    // Getters and Setters
+    
     public Long getIdDisponibilidad() {
         return idDisponibilidad;
     }

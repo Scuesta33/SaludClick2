@@ -124,7 +124,7 @@ public class UsuarioController {
             // Proceder a eliminar el usuario
             usuarioServiceImp.eliminar(idUsuario);
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Usuario ha sido eliminado.");
+            response.put("mensaje", "Usuario ha sido eliminado.");
             return ResponseEntity.ok(response);
         } catch (ResponseStatusException e) {
             throw e; // Repropagar excepciones específicas de respuesta

@@ -192,7 +192,7 @@ public void sendCitaRejectionEmail(String toEmail) throws MessagingException {
         helper.setTo(toEmail);
         helper.setSubject("Cita Rechazada");
         helper.setText("<h1>Tu cita ha sido rechazada</h1>" +
-                "<p>Tu cita ha sido rechazada exitosamente.</p>", true);
+                "<p>Tu cita ha sido rechazada .</p>", true);
 
         mailSender.send(message);
         logger.info("Correo de rechazo de cita enviado a: " + toEmail);

@@ -38,7 +38,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthLoginRequestDTO loginRequest) {
         try {
-            // Autenticación con las credenciales proporcionadas
+            // Autenticación con las credenciales 
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getEmail(),
@@ -46,10 +46,10 @@ public class AuthController {
                 )
             );
 
-            // Cargar los detalles del usuario
+            // Cargar  detalles del usuario
             UserDetails userDetails = usuarioDetailsServiceImp.loadUserByUsername(loginRequest.getEmail());
 
-            // Buscar el usuario en la base de datos
+            // Buscar usuario en la base de datos
             Usuario usuario = usuarioServiceImp.buscarPorEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 

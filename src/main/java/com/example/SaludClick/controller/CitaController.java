@@ -53,7 +53,7 @@ public class CitaController {
     @Autowired
     private DisponibilidadService disponibilidadService;
 
-    // Función para convertir el día de la semana
+    // Este método es para convertir el día de la semana a español
     public String convertirDiaALaSemanaEspañol(DayOfWeek dayOfWeek) {
         switch (dayOfWeek) {
             case MONDAY: return "Lunes";
@@ -83,7 +83,7 @@ public class CitaController {
             if (usuarioOpt.isPresent()) {
                 Usuario usuario = usuarioOpt.get();
                 if (usuario.getRol() != Usuario.Rol.PACIENTE) {
-                    return new ResponseEntity<>("El usuario no tiene permisos suficientes para crear una cita", HttpStatus.FORBIDDEN);
+                    return new ResponseEntity<>("El usuario no tiene permiso para crear una cita", HttpStatus.FORBIDDEN);
                 }
 
                 Cita cita = new Cita();
@@ -91,10 +91,10 @@ public class CitaController {
                 // Obtener la fecha original
                 LocalDateTime fechaOriginal = citaDTO.getFecha();
                 
-                // Sumar una hora a la fecha, pero solo si no se cruza al siguiente día
+                // Sumar una hora a la fecha porque se me creaba con una hora menos
                 LocalDateTime nuevaFecha = fechaOriginal.plusHours(1);
                 if (nuevaFecha.toLocalDate().isEqual(fechaOriginal.toLocalDate())) {
-                    cita.setFecha(nuevaFecha); // Solo ajusta la fecha si sigue dentro del mismo día
+                    cita.setFecha(nuevaFecha); 
                 } else {
                     return new ResponseEntity<>("La cita no puede ser ajustada a un día diferente", HttpStatus.BAD_REQUEST);
                 }
@@ -127,7 +127,7 @@ public class CitaController {
                 try {
                     emailService.sendCitaCreationEmail(usuario.getEmail(), cita.getFecha().toString(), "Location");
                 } catch (MessagingException e) {
-                    logger.error("Error sending email notification to user {} for cita {}: {}", usuario.getEmail(), cita.getIdCita(), e.getMessage());
+                    logger.error("Error enviando email de confirmacion a usuario {} para cita {}: {}", usuario.getEmail(), cita.getIdCita(), e.getMessage());
                 }
 
                 return new ResponseEntity<>(nuevaCita, HttpStatus.CREATED);
@@ -143,10 +143,10 @@ public class CitaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Cita> obtenerCita(@PathVariable Long id) {
-        logger.info("Fetching Cita with id: {}", id);
+        logger.info("Obteniendo Cita con id: {}", id);
         Optional<Cita> cita = citaService.obtenerCitaPorId(id);
         return cita.map(ResponseEntity::ok).orElseGet(() -> {
-            logger.warn("Cita not found with id: {}", id);
+            logger.warn("Cita no encontrada con id: {}", id);
             return ResponseEntity.notFound().build();
         });
     }
@@ -167,7 +167,7 @@ public class CitaController {
             if (usuarioOpt.isPresent()) {
                 Usuario usuario = usuarioOpt.get();
                 if (usuario.getRol() == Usuario.Rol.PACIENTE || usuario.getRol() == Usuario.Rol.MEDICO) {
-                    logger.info("Updating Cita with id: {}", id);
+                    logger.info("Actualizando cita con id: {}", id);
                     Optional<Cita> citaOpt = citaService.obtenerCitaPorId(id);
                     if (citaOpt.isPresent()) {
                         Cita cita = citaOpt.get();
@@ -216,11 +216,11 @@ public class CitaController {
                             List<Usuario> medicos = usuarioServiceImp.buscarPorNombre(citaDTO.getMedicoNombre());
                             if (medicos.isEmpty()) {
                                 Map<String, String> response = new HashMap<>();
-                                response.put("error", "Medico not found");
+                                response.put("error", "Medico no encontrado");
                                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                             } else if (medicos.size() > 1) {
                                 Map<String, String> response = new HashMap<>();
-                                response.put("error", "Multiple medicos found");
+                                response.put("error", "Multiples medicos encontrados");
                                 return new ResponseEntity<>(response, HttpStatus.CONFLICT);
                             } else {
                                 Usuario medico = medicos.get(0);
@@ -237,12 +237,12 @@ public class CitaController {
                                         cita.setMedico(medico);
                                     } else {
                                         Map<String, String> response = new HashMap<>();
-                                        response.put("error", "Medico is not available at the selected time");
+                                        response.put("error", "Medico no disponible en esa fecha y hora");
                                         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                                     }
                                 } else {
                                     Map<String, String> response = new HashMap<>();
-                                    response.put("error", "User is not a medico");
+                                    response.put("error", "el usuario no es medico");
                                     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                                 }
                             }
@@ -255,7 +255,7 @@ public class CitaController {
                         try {
                             String toEmail = cita.getPaciente().getEmail();
                             String citaFecha = cita.getFecha().toString();
-                            String citaLocation = "Location"; // Puedes ajustar esto según sea necesario
+                            String citaLocation = "Sevilla"; // Puedes ajustar esto según sea necesario
 
                             if (cita.getEstado() == Cita.EstadoCita.ACEPTADA) {
                                 emailService.sendCitaAcceptanceEmail(toEmail, citaFecha, citaLocation);
@@ -265,15 +265,15 @@ public class CitaController {
                                 emailService.sendCitaUpdateEmail(toEmail, citaFecha, citaLocation);
                             }
                         } catch (MessagingException e) {
-                            logger.error("Error sending email", e);
+                            logger.error("Error enviando email", e);
                         }
 
                         Map<String, String> response = new HashMap<>();
-                        response.put("message", "Cita updated successfully");
+                        response.put("mensaje", "Cita actualizada");
                         return new ResponseEntity<>(response, HttpStatus.OK);
                     } else {
                         Map<String, String> response = new HashMap<>();
-                        response.put("error", "Cita not found");
+                        response.put("error", "Cita no encontrada");
                         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
                     }
                 } else {
@@ -283,14 +283,14 @@ public class CitaController {
                 }
             } else {
                 Map<String, String> response = new HashMap<>();
-                response.put("error", "Unauthorized");
+                response.put("error", "no autorizado");
                 return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
         }
 
         // This line is unreachable, but it's a good practice to have a fallback return statement
         Map<String, String> fallbackResponse = new HashMap<>();
-        fallbackResponse.put("error", "Unexpected error");
+        fallbackResponse.put("error", "innesperado error");
         return new ResponseEntity<>(fallbackResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
    
@@ -319,14 +319,14 @@ public class CitaController {
             if (usuarioOpt.isPresent()) {
                 Usuario usuario = usuarioOpt.get();
                 if (usuario.getRol() == Usuario.Rol.PACIENTE || usuario.getRol() == Usuario.Rol.MEDICO) {
-                    logger.info("Deleting Cita with id: {}", id);
+                    logger.info("Borrando cita con id: {}", id);
                     citaService.eliminarCita(id);
 
                     
                     try {
                         emailService.sendCitaDeletionEmail(usuario.getEmail());
                     } catch (MessagingException e) {
-                        logger.error("Error sending email", e);
+                        logger.error("Error enviando email", e);
                     }
 
                     return ResponseEntity.noContent().build();

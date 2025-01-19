@@ -68,9 +68,9 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:4200"); // Allow specific origin
-        config.addAllowedHeader("*"); // Allow all headers
-        config.addAllowedMethod("*"); // Allow all methods
+        config.addAllowedOrigin("http://localhost:4200"); 
+        config.addAllowedHeader("*"); 
+        config.addAllowedMethod("*"); 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
@@ -79,9 +79,9 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:4200"); // Allow specific origin
-        config.addAllowedHeader("*"); // Allow all headers
-        config.addAllowedMethod("*"); // Allow all methods
+        config.addAllowedOrigin("http://localhost:4200"); 
+        config.addAllowedHeader("*"); 
+        config.addAllowedMethod("*"); 
         source.registerCorsConfiguration("/**", config);
         return source;
     }

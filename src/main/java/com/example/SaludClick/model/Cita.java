@@ -11,7 +11,7 @@ public class Cita {
     private Long idCita;
 
     @Column(nullable = false)
-    private LocalDateTime fecha; // Switched to LocalDateTime for modern Java
+    private LocalDateTime fecha; 
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -19,12 +19,12 @@ public class Cita {
 
     @ManyToOne
     @JoinColumn(name = "id_paciente", nullable = false)
-    @JsonIgnore // Prevent serialization issues
+    @JsonIgnore 
     private Usuario paciente;
 
     @ManyToOne
     @JoinColumn(name = "id_medico", nullable = false)
-    @JsonIgnore // Prevent serialization issues
+    @JsonIgnore 
     private Usuario medico;
 
     public enum EstadoCita {

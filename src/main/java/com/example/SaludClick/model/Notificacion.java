@@ -19,15 +19,15 @@ public class Notificacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idNotificacion;
 
-    @ManyToOne(optional = false) // Ensures this field is mandatory
-    @JoinColumn(name = "id_usuario", nullable = false) // Foreign key to Usuario
+    @ManyToOne(optional = false) 
+    @JoinColumn(name = "id_usuario", nullable = false) 
     private Usuario usuario;
 
-    @ManyToOne // Allows null values if a notification is not directly related to a Cita
-    @JoinColumn(name = "id_cita") // Foreign key to Cita
+    @ManyToOne 
+    @JoinColumn(name = "id_cita") 
     private Cita cita;
 
-    @Column(nullable = false) // Ensures the notification type is mandatory
+    @Column(nullable = false) 
     private String tipoNotificacion;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -36,12 +36,12 @@ public class Notificacion {
     @Column(nullable = false) 
     private String estado;
 
-    // Default constructor
+    
     public Notificacion() {
         super();
     }
 
-    // Constructor with fields
+    
     public Notificacion(Long idNotificacion, Usuario usuario, Cita cita, String tipoNotificacion, Date fechaEnvio,
                         String estado) {
         super();
@@ -53,7 +53,7 @@ public class Notificacion {
         this.estado = estado;
     }
 
-    // Getters and Setters
+    
     public Long getIdNotificacion() {
         return idNotificacion;
     }

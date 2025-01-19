@@ -25,9 +25,9 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
-    private String contrasena;  // Updated field name
-    private String telefono;   // Updated field name
-    private String direccion;  // Updated field name
+    private String contrasena;  
+    private String telefono;   
+    private String direccion;  
     private Boolean activo;
 
     @Enumerated(EnumType.STRING)

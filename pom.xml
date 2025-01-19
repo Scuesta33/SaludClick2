@@ -81,12 +81,12 @@
       <dependency>
     <groupId>jakarta.validation</groupId>
     <artifactId>jakarta.validation-api</artifactId>
-     <!-- Verifica la última versión disponible -->
+    
 </dependency>
 <dependency>
     <groupId>org.hibernate.validator</groupId>
     <artifactId>hibernate-validator</artifactId>
-     <!-- Verifica la última versión disponible -->
+     
 </dependency>
     <dependency>
        <groupId>org.slf4j</groupId>

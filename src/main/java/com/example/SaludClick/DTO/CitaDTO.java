@@ -8,8 +8,8 @@ public class CitaDTO {
 	private Long id;
 	private LocalDateTime fecha;
     private EstadoCita estado;
-    private String medicoNombre; // Solo el email del médico
-    private String pacienteNombre; // Solo el email del paciente
+    private String medicoNombre; 
+    private String pacienteNombre; 
 	public LocalDateTime getFecha() {
 		return fecha;
 	}
@@ -42,6 +42,5 @@ public class CitaDTO {
 	}
 	
 
-    // Getters y setters
     
 }

@@ -48,12 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.info("Authentication set for user: {}", username);
+                logger.info("Autenticacion para usuario {}", username);
             } catch (Exception e) {
-                logger.error("Token validation failed", e);
+                logger.error("validacion de token fallada", e);
             }
         } else {
-            logger.warn("No token found in request header");
+            logger.warn("Ningun token encontrado en request header");
         }
 
         chain.doFilter(request, response);

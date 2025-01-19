@@ -37,11 +37,11 @@ public class UsuarioServiceImp implements IUsuarioService {
         usuario.setActivo(true);
         Usuario nuevoUsuario = usuarioRepository.save(usuario);
 
-        // Send registration email
+       
         try {
             emailService.sendRegistrationEmail(usuario.getEmail());
         } catch (MessagingException e) {
-            // Handle the exception (e.g., log it)
+            
         }
 
         return nuevoUsuario;
@@ -64,11 +64,11 @@ public class UsuarioServiceImp implements IUsuarioService {
         }
         Usuario usuarioActualizado = usuarioRepository.save(usuario);
 
-        // Send credential update email
+        
         try {
             emailService.sendCredentialUpdateEmail(usuario.getEmail());
         } catch (MessagingException e) {
-            // Handle the exception (e.g., log it)
+           
         }
 
         return usuarioActualizado;
@@ -95,11 +95,11 @@ public void eliminar(Long idUsuario) {
 
     usuarioRepository.deleteById(idUsuario);
 
-    // Send account deletion email
+    
     try {
         emailService.sendAccountDeletionEmail(usuarioAutenticado.getEmail());
     } catch (MessagingException e) {
-        // Handle the exception (e.g., log it)
+        
     }
 }
 

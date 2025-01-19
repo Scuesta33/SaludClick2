@@ -22,7 +22,7 @@ public class CitaReminderScheduler {
     @Autowired
     private EmailService emailService;
 
-    @Scheduled(cron = "0 0 0 * * *") // Runs every day at midnight
+    @Scheduled(cron = "0 0 0 * * *") //corre todos los dias a medianoche
     public void sendCitaReminders() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime tomorrow = now.plus(1, ChronoUnit.DAYS);
@@ -31,9 +31,9 @@ public class CitaReminderScheduler {
         for (Cita cita : citas) {
             if (cita.getFecha().toLocalDate().isEqual(tomorrow.toLocalDate())) {
                 try {
-                    emailService.sendCitaReminderEmail(cita.getPaciente().getEmail(), cita.getFecha().toString(), "Location");
+                    emailService.sendCitaReminderEmail(cita.getPaciente().getEmail(), cita.getFecha().toString(), "Sevilla");
                 } catch (MessagingException e) {
-                    // Log the error
+                    
                 }
             }
         }
