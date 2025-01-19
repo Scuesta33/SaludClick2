@@ -97,4 +97,9 @@ public class DisponibilidadMedicoController {
         disponibilidadService.eliminarDisponibilidad(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    @GetMapping("/todas")
+    public ResponseEntity<List<DisponibilidadMedico>> obtenerTodasLasDisponibilidades() {
+        List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerTodasLasDisponibilidades();
+        return ResponseEntity.ok(disponibilidades);
+    }
 }
