@@ -100,9 +100,17 @@ public class DisponibilidadMedicoController {
 	    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-	@GetMapping("/todas")
-	public ResponseEntity<List<DisponibilidadMedico>> obtenerTodasLasDisponibilidades() {
-		List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerTodasLasDisponibilidades();
-		return ResponseEntity.ok(disponibilidades);
-	}
+
+@GetMapping("/todas")
+public ResponseEntity<List<DisponibilidadMedico>> obtenerTodasLasDisponibilidades() {
+    List<DisponibilidadMedico> disponibilidades = disponibilidadService.obtenerTodasLasDisponibilidades();
+
+    disponibilidades.forEach(disponibilidad -> {
+        disponibilidad.setHoraInicio(disponibilidad.getHoraInicio().plusHours(1));
+        disponibilidad.setHoraFin(disponibilidad.getHoraFin().plusHours(1));
+    });
+
+    return ResponseEntity.ok(disponibilidades);
+}
+
 }
