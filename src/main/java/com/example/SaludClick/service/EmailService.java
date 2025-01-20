@@ -203,4 +203,24 @@ public void sendCitaRejectionEmail(String toEmail) throws MessagingException {
     }
 }
 
+public void sendNotificacionEmail(String toEmail, String tipoNotificacion, String mensaje) throws MessagingException {
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+    try {
+        helper.setFrom("SaludClick <scuesta33@gmail.com>");
+        helper.setTo(toEmail);
+        helper.setSubject("Nueva Notificación: " + tipoNotificacion);
+        helper.setText("<h1>Has recibido una nueva notificación</h1>" +
+                "<p>" + mensaje + "</p>", true);
+
+        mailSender.send(message);
+        logger.info("Correo de notificación enviado a: " + toEmail);
+    } catch (MessagingException e) {
+        logger.error("Error al enviar el correo de notificación a " + toEmail, e);
+        throw new MessagingException("Error al enviar el correo de notificación", e);
+    }
+}
+
+
 }
