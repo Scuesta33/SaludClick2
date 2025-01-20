@@ -26,7 +26,7 @@ public class DisponibilidadService {
 	        return disponibilidadRepository.findAll();
 	    }
 	    
-	    public void eliminarDisponibilidad(Long id) {
-	        disponibilidadRepository.deleteById(id);
+	    public void eliminarDisponibilidad(Long idDisponibilidad) {
+	        disponibilidadRepository.deleteById(idDisponibilidad);
 	    } 
 }

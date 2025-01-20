@@ -94,10 +94,10 @@ public class DisponibilidadMedicoController {
 		}
 	}
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<?> eliminarDisponibilidad(@PathVariable Long id) {
-		disponibilidadService.eliminarDisponibilidad(id);
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	@DeleteMapping("/{idDisponibilidad}")
+	public ResponseEntity<?> eliminarDisponibilidad(@PathVariable Long idDisponibilidad) {
+	    disponibilidadService.eliminarDisponibilidad(idDisponibilidad);
+	    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@GetMapping("/todas")

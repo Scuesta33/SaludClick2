@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/usuarios/eliminar/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/disponibilidad/crear").hasRole("MEDICO")
                 .requestMatchers(HttpMethod.GET, "/disponibilidad/medico/**").hasRole("MEDICO")
+                .requestMatchers(HttpMethod.DELETE, "/disponibilidad/{id}").hasRole("MEDICO")
                 .requestMatchers("/citas/consultas").hasRole("MEDICO")
                 .anyRequest().authenticated()
             )
