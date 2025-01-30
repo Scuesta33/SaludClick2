@@ -20,7 +20,7 @@ public class Notificacion {
     private Cita cita;
 
     @Column(nullable = false)
-    private String tipoNotificacion;
+	private String asunto;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaEnvio;
@@ -59,12 +59,14 @@ public class Notificacion {
 		this.cita = cita;
 	}
 
-	public String getTipoNotificacion() {
-		return tipoNotificacion;
+	
+
+	public String getAsunto() {
+		return asunto;
 	}
 
-	public void setTipoNotificacion(String tipoNotificacion) {
-		this.tipoNotificacion = tipoNotificacion;
+	public void setAsunto(String asunto) {
+		this.asunto = asunto;
 	}
 
 	public Date getFechaEnvio() {

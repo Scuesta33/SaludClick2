@@ -28,7 +28,7 @@ public class NotificacionController {
 
 
 @PostMapping("/enviar")
-public ResponseEntity<?> enviarNotificacion(@RequestParam String tipoNotificacion, @RequestParam String estado, @RequestParam String mensaje, @RequestParam String destinatarioNombre) {
+public ResponseEntity<?> enviarNotificacion(@RequestParam String asunto, @RequestParam String estado, @RequestParam String mensaje, @RequestParam String destinatarioNombre) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Object principal = authentication.getPrincipal();
 
@@ -40,7 +40,7 @@ public ResponseEntity<?> enviarNotificacion(@RequestParam String tipoNotificacio
         if (usuarioOpt.isPresent() && !destinatarios.isEmpty()) {
             Usuario usuario = usuarioOpt.get();
             Usuario destinatario = destinatarios.get(0); // Assuming the first match is the intended recipient
-            Notificacion notificacion = notificacionesService.enviarNotificacion(usuario, tipoNotificacion, estado, mensaje, destinatario);
+            Notificacion notificacion = notificacionesService.enviarNotificacion(usuario, asunto, estado, mensaje, destinatario);
             return new ResponseEntity<>(notificacion, HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>("Usuario o destinatario no encontrado", HttpStatus.BAD_REQUEST);

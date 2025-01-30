@@ -24,10 +24,10 @@ public class NotificacionesService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificacionesService.class);
 
-    public Notificacion enviarNotificacion(Usuario usuario, String tipoNotificacion, String estado, String mensaje, Usuario destinatario) {
+    public Notificacion enviarNotificacion(Usuario usuario, String asunto, String estado, String mensaje, Usuario destinatario) {
         Notificacion notificacion = new Notificacion();
         notificacion.setUsuario(usuario);
-        notificacion.setTipoNotificacion(tipoNotificacion);
+        notificacion.setAsunto(asunto);
         notificacion.setFechaEnvio(new Date());
         notificacion.setEstado(estado);
         notificacion.setMensaje(mensaje);
@@ -36,7 +36,7 @@ public class NotificacionesService {
         Notificacion savedNotificacion = notificacionRepository.save(notificacion);
 
         try {
-            emailService.sendNotificacionEmail(destinatario.getEmail(), tipoNotificacion, mensaje);
+            emailService.sendNotificacionEmail(destinatario.getEmail(), asunto, mensaje);
             logger.info("Correo de notificación enviado a: " + destinatario.getEmail());
         } catch (MessagingException e) {
             logger.error("Error al enviar el correo de notificación a " + destinatario.getEmail(), e);
