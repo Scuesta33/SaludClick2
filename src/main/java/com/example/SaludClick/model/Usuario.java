@@ -12,7 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-
+// entidad usuario
 @Entity
 public class Usuario {
     @Id
@@ -37,7 +37,7 @@ public class Usuario {
     public enum Rol {
         PACIENTE, MEDICO
     }
-
+// los json ignore se usan para evitar que se serialicen en los json
     @OneToMany(mappedBy = "paciente")
     @JsonIgnore
     private List<Cita> citasComoPaciente;

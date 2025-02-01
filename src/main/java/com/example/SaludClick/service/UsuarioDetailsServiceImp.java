@@ -1,4 +1,3 @@
-
 package com.example.SaludClick.service;
 
 import java.util.Optional;
@@ -23,18 +22,30 @@ public class UsuarioDetailsServiceImp implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
+        System.out.println("Intentando cargar usuario con email: " + email);
+
+        if (email == null || email.isEmpty()) {
+            System.out.println("Error: El email proporcionado es nulo o vacío.");
+            throw new RuntimeException("Email inválido.");
+        }
+
         Optional<Usuario> optionalUsuario = usuarioServiceImp.buscarPorEmail(email);
 
         if (optionalUsuario.isEmpty()) {
-            throw new RuntimeException("Usuario no encontrado con el email: " + email);
+            System.out.println("Advertencia: No se encontró usuario con el email: " + email);
+            throw new RuntimeException("Usuario no encontrado.");
         }
 
         Usuario usuario = optionalUsuario.get();
+        System.out.println("Usuario encontrado: " + usuario.getEmail() + ", Rol: " + usuario.getRol().name());
 
-        return User.builder()
-                   .username(usuario.getEmail())
-                   .password(usuario.getContrasena())
-                   .roles(usuario.getRol().name())
-                   .build();
+        UserDetails userDetails = User.builder()
+                                      .username(usuario.getEmail())
+                                      .password(usuario.getContrasena())
+                                      .roles(usuario.getRol().name())
+                                      .build();
+
+        System.out.println("Usuario cargado correctamente.");
+        return userDetails;
     }
 }

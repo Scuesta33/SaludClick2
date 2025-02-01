@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 import java.time.LocalTime;
+//entidad disponibilidad medico
 @Entity
 public class DisponibilidadMedico {
 

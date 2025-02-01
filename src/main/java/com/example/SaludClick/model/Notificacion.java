@@ -3,7 +3,7 @@ package com.example.SaludClick.model;
 
 import java.util.Date;
 import jakarta.persistence.*;
-
+//entidad notificacion, quiero dejar claro que estan todos los contructores porque no me funcionaba lombok
 @Entity
 public class Notificacion {
 

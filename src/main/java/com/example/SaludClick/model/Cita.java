@@ -3,7 +3,7 @@ package com.example.SaludClick.model;
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
+//entidad cita
 @Entity
 public class Cita {
     @Id
@@ -26,11 +26,11 @@ public class Cita {
     @JoinColumn(name = "id_medico", nullable = false)
     @JsonIgnore 
     private Usuario medico;
-
+//diferentes estados para las citas con un enum
     public enum EstadoCita {
         PENDIENTE, ACEPTADA, RECHAZADA, CANCELADA
     }
-
+//constructores
     public Cita() {
         super();
     }
@@ -42,6 +42,13 @@ public class Cita {
         this.paciente = paciente;
         this.medico = medico;
     }
+    public Cita(LocalDateTime fecha, EstadoCita estado, Usuario paciente, Usuario medico) {
+        this.fecha = fecha;
+        this.estado = estado;
+        this.paciente = paciente;
+        this.medico = medico;
+    }
+
 
     public Long getIdCita() {
         return idCita;

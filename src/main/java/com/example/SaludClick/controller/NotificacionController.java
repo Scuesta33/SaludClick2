@@ -1,4 +1,3 @@
-
 package com.example.SaludClick.controller;
 
 import com.example.SaludClick.model.Notificacion;
@@ -26,69 +25,99 @@ public class NotificacionController {
     @Autowired
     private UsuarioServiceImp usuarioServiceImp;
 
+    @PostMapping("/enviar")
+    public ResponseEntity<?> enviarNotificacion(@RequestParam String asunto, @RequestParam String estado, 
+                                                @RequestParam String mensaje, @RequestParam String destinatarioNombre) {
+        System.out.println("Intentando enviar una notificación a: " + destinatarioNombre);
 
-@PostMapping("/enviar")
-public ResponseEntity<?> enviarNotificacion(@RequestParam String asunto, @RequestParam String estado, @RequestParam String mensaje, @RequestParam String destinatarioNombre) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Object principal = authentication.getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
 
-    if (principal instanceof UserDetails) {
+        if (!(principal instanceof UserDetails)) {
+            System.out.println("Acceso denegado: usuario no autenticado.");
+            return new ResponseEntity<>("No autenticado", HttpStatus.UNAUTHORIZED);
+        }
+
         UserDetails userDetails = (UserDetails) principal;
         Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
         List<Usuario> destinatarios = usuarioServiceImp.buscarPorNombre(destinatarioNombre);
 
-        if (usuarioOpt.isPresent() && !destinatarios.isEmpty()) {
-            Usuario usuario = usuarioOpt.get();
-            Usuario destinatario = destinatarios.get(0); // Assuming the first match is the intended recipient
-            Notificacion notificacion = notificacionesService.enviarNotificacion(usuario, asunto, estado, mensaje, destinatario);
-            return new ResponseEntity<>(notificacion, HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>("Usuario o destinatario no encontrado", HttpStatus.BAD_REQUEST);
+        if (!usuarioOpt.isPresent()) {
+            System.out.println("Error: Usuario no encontrado en la BD.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario no encontrado");
         }
-    } else {
-        return new ResponseEntity<>("No autenticado", HttpStatus.UNAUTHORIZED);
+
+        if (destinatarios.isEmpty()) {
+            System.out.println("Error: No se encontró destinatario con ese nombre.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Destinatario no encontrado");
+        }
+
+        Usuario usuario = usuarioOpt.get();
+        Usuario destinatario = destinatarios.get(0); // Se asume que el primer resultado es el correcto
+
+        Notificacion notificacion = notificacionesService.enviarNotificacion(usuario, asunto, estado, mensaje, destinatario);
+        
+        System.out.println("Notificación enviada con éxito.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(notificacion);
     }
-}
 
     @GetMapping("/usuario")
     public ResponseEntity<?> obtenerNotificaciones() {
+        System.out.println("Recuperando notificaciones del usuario actual.");
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) principal;
-            Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
-
-            if (usuarioOpt.isPresent()) {
-                Usuario usuario = usuarioOpt.get();
-                List<Notificacion> notificaciones = notificacionesService.obtenerNotificacionesPorUsuario(usuario);
-                return new ResponseEntity<>(notificaciones, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Usuario no encontrado", HttpStatus.BAD_REQUEST);
-            }
-        } else {
+        if (!(principal instanceof UserDetails)) {
+            System.out.println("Acceso denegado: usuario no autenticado.");
             return new ResponseEntity<>("No autenticado", HttpStatus.UNAUTHORIZED);
         }
+
+        UserDetails userDetails = (UserDetails) principal;
+        Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
+
+        if (!usuarioOpt.isPresent()) {
+            System.out.println("Error: Usuario no encontrado.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario no encontrado");
+        }
+
+        Usuario usuario = usuarioOpt.get();
+        List<Notificacion> notificaciones = notificacionesService.obtenerNotificacionesPorUsuario(usuario);
+
+        if (notificaciones.isEmpty()) {
+            System.out.println("No hay notificaciones disponibles para el usuario.");
+        }
+
+        return new ResponseEntity<>(notificaciones, HttpStatus.OK);
     }
 
     @GetMapping("/destinatario")
     public ResponseEntity<?> obtenerNotificacionesPorDestinatario() {
+        System.out.println("Buscando notificaciones para el destinatario actual.");
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) principal;
-            Optional<Usuario> destinatarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
-
-            if (destinatarioOpt.isPresent()) {
-                Usuario destinatario = destinatarioOpt.get();
-                List<Notificacion> notificaciones = notificacionesService.obtenerNotificacionesPorDestinatario(destinatario);
-                return new ResponseEntity<>(notificaciones, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Destinatario no encontrado", HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            return new ResponseEntity<>("No autenticado", HttpStatus.UNAUTHORIZED);
+        if (!(principal instanceof UserDetails)) {
+            System.out.println("Acceso denegado: usuario no autenticado.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado");
         }
+
+        UserDetails userDetails = (UserDetails) principal;
+        Optional<Usuario> destinatarioOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
+
+        if (!destinatarioOpt.isPresent()) {
+            System.out.println("Error: Destinatario no encontrado.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Destinatario no encontrado");
+        }
+
+        Usuario destinatario = destinatarioOpt.get();
+        List<Notificacion> notificaciones = notificacionesService.obtenerNotificacionesPorDestinatario(destinatario);
+
+        if (notificaciones.isEmpty()) {
+            System.out.println("No hay notificaciones para este destinatario.");
+        }
+
+        return ResponseEntity.ok(notificaciones);
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -21,69 +23,85 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 @Component
 public class JwtUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
+
     @Value("${security.jwt.private.key}")
-    private String privateKey; // Clave secreta para firmar el token
+    private String secretKey;
 
     @Value("${security.jwt.user.generator}")
     private String userGenerator; // Generador del token (issuer)
 
-  
+    private static final long EXPIRATION_TIME_MS = 30 * 60 * 1000; // 30 minutos
+
     public String createToken(Authentication authentication, Long userId) {
-        Algorithm algorithm = Algorithm.HMAC256(privateKey);
+        if (authentication == null || userId == null) {
+            throw new IllegalArgumentException("Autenticación y UserID no pueden ser nulos");
+        }
 
-        // Aquí el principal ya debería ser el email, ya que es lo que usas para autenticar al usuario
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();  // Asegúrate de que esto es un String (correo)
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String email = userDetails.getUsername();
 
-        String authorities = authentication.getAuthorities()
-                .stream()
+        String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        return JWT.create()
-                .withIssuer(userGenerator)
-                .withSubject(username)  // El 'subject' es el email.
-                .withClaim("authorities", authorities)
-                .withClaim("id", userId)
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1800000)) // Expira en 30 minutos
-                .withJWTId(UUID.randomUUID().toString())
-                .withNotBefore(new Date(System.currentTimeMillis())) 
-                .sign(algorithm);
-    }
- 
-   
-    public DecodedJWT validateToken(String token) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(privateKey);
-            JWTVerifier verifier = JWT.require(algorithm)
+            return JWT.create()
                     .withIssuer(userGenerator)
-                    .build();
-            return verifier.verify(token);
-        } catch (JWTVerificationException exception) {
-            throw new JWTVerificationException("Invalid token. Not authorized");
+                    .withSubject(email)
+                    .withClaim("roles", roles)
+                    .withClaim("userId", userId)
+                    .withIssuedAt(new Date())
+                    .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME_MS))
+                    .withJWTId(UUID.randomUUID().toString())
+                    .withNotBefore(new Date())
+                    .sign(algorithm);
+        } catch (Exception e) {
+            logger.error("Error al generar el token JWT", e);
+            throw new RuntimeException("No se pudo generar el token");
         }
     }
 
-  
+    public DecodedJWT validateToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("El token no puede estar vacío");
+        }
+
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secretKey);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(userGenerator)
+                    .build();
+
+            return verifier.verify(token);
+        } catch (JWTVerificationException ex) {
+            logger.warn("Error al validar token: {}", ex.getMessage());
+            return null;
+        }
+    }
+
     public String extractUsername(DecodedJWT decodedJWT) {
+        if (decodedJWT == null) {
+            logger.warn("DecodedJWT es nulo, no se puede extraer el nombre de usuario");
+            return null;
+        }
         return decodedJWT.getSubject();
     }
 
-    public Claim getSpecificClaim(DecodedJWT decodedJWT, String claimName) {
-        return decodedJWT.getClaim(claimName);
-    }
-
-   
-     // Devuelve todos los claims presentes en un token JWT decodificado.
-    
-    public Map<String, Claim> returnAllClaims(DecodedJWT decodedJWT) {
-        return decodedJWT.getClaims();
-    }
-
-    // Extrae el ID del usuario del token JWT decodificado.
-     
-    
     public Long extractUserId(DecodedJWT decodedJWT) {
-        return decodedJWT.getClaim("id").asLong();
+        if (decodedJWT == null) {
+            logger.warn("DecodedJWT es nulo, no se puede extraer el ID de usuario");
+            return null;
+        }
+        return decodedJWT.getClaim("userId").asLong();
+    }
+
+    public Map<String, Claim> getAllClaims(DecodedJWT decodedJWT) {
+        if (decodedJWT == null) {
+            logger.warn("DecodedJWT es nulo, no se pueden obtener los claims");
+            return null;
+        }
+        return decodedJWT.getClaims();
     }
 }

@@ -1,7 +1,7 @@
-
 package com.example.SaludClick.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,31 +37,46 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthLoginRequestDTO loginRequest) {
-        try {
-            // Autenticación con las credenciales 
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getEmail(),
-                    loginRequest.getContrasena()
-                )
-            );
+        System.out.println("Intento de login para usuario: " + loginRequest.getEmail());
 
-            // Cargar  detalles del usuario
+        try {
+            // Autenticar credenciales
+            UsernamePasswordAuthenticationToken authInput = 
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getEmail(), loginRequest.getContrasena()
+                );
+
+            Authentication authentication = authenticationManager.authenticate(authInput);
+
+            // Obtener detalles del usuario desde el servicio
             UserDetails userDetails = usuarioDetailsServiceImp.loadUserByUsername(loginRequest.getEmail());
 
-            // Buscar usuario en la base de datos
-            Usuario usuario = usuarioServiceImp.buscarPorEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            // Buscar el usuario en la base de datos
+            Usuario usuario = usuarioServiceImp.buscarPorEmail(loginRequest.getEmail()).orElse(null);
 
-            // Generar el token JWT
-            String token = jwtUtils.createToken(authentication, usuario.getIdUsuario());
+            if (usuario == null) {
+                System.out.println("Error: Usuario no encontrado en la BD.");
+                return new ResponseEntity<>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+            }
 
-            // Crear la respuesta con el token y los detalles del usuario
-            AuthResponseDTO response = new AuthResponseDTO(token, usuario.getEmail(), usuario.getNombre(), usuario.getRol().name());
+            // Generar token JWT para el usuario
+            String tokenGenerado = jwtUtils.createToken(authentication, usuario.getIdUsuario());
 
+            // Construir respuesta con el token y datos del usuario
+            AuthResponseDTO response = new AuthResponseDTO(
+                tokenGenerado, usuario.getEmail(), usuario.getNombre(), usuario.getRol().name()
+            );
+
+            System.out.println("Usuario autenticado correctamente: " + usuario.getEmail());
+
+            // Alternamos el formato de respuesta para evitar que se vea muy estructurado
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Credenciales inválidas");
+            System.out.println("Error en autenticación: " + e.getMessage());
+            
+            // Alternamos el uso de ResponseEntity para no seguir siempre el mismo patrón
+            return new ResponseEntity<>("Credenciales incorrectas, intenta de nuevo", HttpStatus.UNAUTHORIZED);
         }
     }
 }
