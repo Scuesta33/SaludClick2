@@ -30,24 +30,27 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        System.out.println("Configurando seguridad...");
+
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/usuarios/registrar").permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                .requestMatchers("/medico/**").hasRole("MEDICO")
-                .requestMatchers("/paciente/**").hasRole("PACIENTE")
-                .requestMatchers("/citas/**").hasAnyRole("PACIENTE", "MEDICO")
-                .requestMatchers("/usuarios/datos").hasAnyRole("PACIENTE", "MEDICO") 
-                .requestMatchers(HttpMethod.DELETE, "/usuarios/eliminar/**").authenticated()
-                .requestMatchers(HttpMethod.POST, "/disponibilidad/crear").hasRole("MEDICO")
-                .requestMatchers(HttpMethod.GET, "/disponibilidad/medico/**").hasRole("MEDICO")
-                .requestMatchers(HttpMethod.DELETE, "/disponibilidad/{id}").hasRole("MEDICO")
-                .requestMatchers("/citas/consultas").hasRole("MEDICO")
-                .anyRequest().authenticated()
-            )
+            .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(HttpMethod.POST, "/usuarios/registrar").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
+                auth.requestMatchers("/paciente/**").hasRole("PACIENTE");
+                auth.requestMatchers("/medico/**").hasRole("MEDICO");
+                auth.requestMatchers("/citas/**").hasAnyRole("PACIENTE", "MEDICO");
+                auth.requestMatchers("/usuarios/datos").hasAnyRole("PACIENTE", "MEDICO"); 
+                auth.requestMatchers(HttpMethod.DELETE, "/usuarios/eliminar/**").authenticated();
+                auth.requestMatchers(HttpMethod.POST, "/disponibilidad/crear").hasRole("MEDICO");
+                auth.requestMatchers(HttpMethod.GET, "/disponibilidad/medico/**").hasRole("MEDICO");
+                auth.requestMatchers(HttpMethod.DELETE, "/disponibilidad/{id}").hasRole("MEDICO");
+                auth.requestMatchers("/citas/consultas").hasRole("MEDICO");
+                auth.anyRequest().authenticated();
+            })
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
+        System.out.println("Seguridad configurada.");
         return http.build();
     }
 
@@ -58,6 +61,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        System.out.println("Configurando AuthenticationManager...");
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userDetailsService)
                                      .passwordEncoder(passwordEncoder());
@@ -69,7 +73,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:4200"); 
+        config.addAllowedOrigin("http://localhost:4200");
         config.addAllowedHeader("*"); 
         config.addAllowedMethod("*"); 
         source.registerCorsConfiguration("/**", config);
@@ -80,7 +84,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:4200"); 
+        config.addAllowedOrigin("http://localhost:4200");
         config.addAllowedHeader("*"); 
         config.addAllowedMethod("*"); 
         source.registerCorsConfiguration("/**", config);

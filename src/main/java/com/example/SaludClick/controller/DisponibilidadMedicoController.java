@@ -27,15 +27,13 @@ public class DisponibilidadMedicoController {
 
     @Autowired
     private DisponibilidadService disponibilidadService;
-
     @Autowired
     private UsuarioServiceImp usuarioServiceImp;
-
     @PostMapping("/crear")
     public ResponseEntity<?> crearDisponibilidad(@RequestBody List<DisponibilidadMedico> disponibilidades) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
-
+        
         if (!(principal instanceof UserDetails)) {
             System.out.println("Acceso denegado: usuario no autenticado.");
             return new ResponseEntity<>("No autorizado", HttpStatus.UNAUTHORIZED);

@@ -1,7 +1,5 @@
 package com.example.SaludClick.securityConfig;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +17,6 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
@@ -33,40 +30,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        System.out.println("Revisando si hay token en la petición...");
+
         String token = obtenerTokenDesdeHeader(request);
 
         if (token != null) {
+            System.out.println("Token encontrado en la cabecera, validando...");
+
             try {
                 DecodedJWT decodedJWT = jwtUtils.validateToken(token);
-                
-                //Evita procesar un token inválido
+
+                // Evita procesar un token inválido
                 if (decodedJWT == null) {
-                    logger.warn("Token inválido o expirado, acceso denegado.");
+                    System.out.println("Token inválido o expirado. No se puede continuar.");
                     chain.doFilter(request, response);
                     return;
                 }
 
                 String username = jwtUtils.extractUsername(decodedJWT);
+                System.out.println("Usuario extraído del token: " + username);
 
-                //Verifica que el usuario exista en la base de datos
+                // Verifica que el usuario exista en la base de datos
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (userDetails == null) {
-                    logger.warn("Usuario no encontrado: {}", username);
+                
+                if (userDetails == null) { 
+                    System.out.println("Advertencia: No se encontró el usuario en la base de datos.");
                     chain.doFilter(request, response);
                     return;
                 }
 
-                //Configurar la autenticación en el contexto de seguridad
+                // Configurar la autenticación en el contexto de seguridad
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.info("Autenticación establecida para el usuario: {}", username);
+                System.out.println("Autenticación exitosa para el usuario: " + username);
+                
             } catch (Exception e) {
-                logger.error("Error al validar el token: {}", e.getMessage());
+                System.out.println("Error al validar el token. ¿Está expirado? " + e.getMessage());
+                e.printStackTrace();
             }
         } else {
-            logger.warn("No se encontró un token en el encabezado.");
+            System.out.println("No se encontró un token en el encabezado.");
         }
 
         chain.doFilter(request, response);
@@ -75,8 +80,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String obtenerTokenDesdeHeader(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7); //Quitamos Bearer 
+        if (authorizationHeader != null) {
+            if (authorizationHeader.startsWith("Bearer ")) {
+                System.out.println("Token extraído del header.");
+                return authorizationHeader.substring(7); // Quitamos "Bearer "
+            } else {
+                System.out.println("Advertencia: El token no tiene el prefijo esperado.");
+            }
+        } else {
+            System.out.println("No hay cabecera de autorización.");
         }
         return null;
     }

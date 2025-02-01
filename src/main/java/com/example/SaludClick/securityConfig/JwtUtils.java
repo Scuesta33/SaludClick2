@@ -10,8 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -23,8 +21,6 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 @Component
 public class JwtUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-
     @Value("${security.jwt.private.key}")
     private String secretKey;
 
@@ -34,7 +30,10 @@ public class JwtUtils {
     private static final long EXPIRATION_TIME_MS = 30 * 60 * 1000; // 30 minutos
 
     public String createToken(Authentication authentication, Long userId) {
+        System.out.println("Generando token JWT...");
+
         if (authentication == null || userId == null) {
+            System.out.println("Error: Autenticación o UserID es nulo.");
             throw new IllegalArgumentException("Autenticación y UserID no pueden ser nulos");
         }
 
@@ -47,7 +46,7 @@ public class JwtUtils {
                 .collect(Collectors.joining(","));
 
         try {
-            return JWT.create()
+            String token = JWT.create()
                     .withIssuer(userGenerator)
                     .withSubject(email)
                     .withClaim("roles", roles)
@@ -57,14 +56,21 @@ public class JwtUtils {
                     .withJWTId(UUID.randomUUID().toString())
                     .withNotBefore(new Date())
                     .sign(algorithm);
+
+            System.out.println("Token generado con éxito.");
+            return token;
+
         } catch (Exception e) {
-            logger.error("Error al generar el token JWT", e);
+            System.out.println("Error al generar el token: " + e.getMessage());
             throw new RuntimeException("No se pudo generar el token");
         }
     }
 
     public DecodedJWT validateToken(String token) {
+        System.out.println("Validando token...");
+
         if (token == null || token.trim().isEmpty()) {
+            System.out.println("Advertencia: El token es nulo o vacío.");
             throw new IllegalArgumentException("El token no puede estar vacío");
         }
 
@@ -74,34 +80,52 @@ public class JwtUtils {
                     .withIssuer(userGenerator)
                     .build();
 
-            return verifier.verify(token);
+            DecodedJWT decodedJWT = verifier.verify(token);
+            System.out.println("Token válido.");
+            return decodedJWT;
+
         } catch (JWTVerificationException ex) {
-            logger.warn("Error al validar token: {}", ex.getMessage());
+            System.out.println("Error al validar el token: " + ex.getMessage());
             return null;
         }
     }
 
     public String extractUsername(DecodedJWT decodedJWT) {
+        System.out.println("Extrayendo nombre de usuario...");
+
         if (decodedJWT == null) {
-            logger.warn("DecodedJWT es nulo, no se puede extraer el nombre de usuario");
+            System.out.println("Advertencia: DecodedJWT es nulo.");
             return null;
         }
-        return decodedJWT.getSubject();
+
+        String username = decodedJWT.getSubject();
+        System.out.println("Nombre de usuario extraído: " + username);
+        return username;
     }
 
     public Long extractUserId(DecodedJWT decodedJWT) {
+        System.out.println("Extrayendo ID de usuario...");
+
         if (decodedJWT == null) {
-            logger.warn("DecodedJWT es nulo, no se puede extraer el ID de usuario");
+            System.out.println("Advertencia: DecodedJWT es nulo.");
             return null;
         }
-        return decodedJWT.getClaim("userId").asLong();
+
+        Long userId = decodedJWT.getClaim("userId").asLong();
+        System.out.println("ID de usuario extraído: " + userId);
+        return userId;
     }
 
     public Map<String, Claim> getAllClaims(DecodedJWT decodedJWT) {
+        System.out.println("Obteniendo todos los claims...");
+
         if (decodedJWT == null) {
-            logger.warn("DecodedJWT es nulo, no se pueden obtener los claims");
+            System.out.println("Advertencia: DecodedJWT es nulo.");
             return null;
         }
-        return decodedJWT.getClaims();
+
+        Map<String, Claim> claims = decodedJWT.getClaims();
+        System.out.println("Claims obtenidos con éxito.");
+        return claims;
     }
 }
