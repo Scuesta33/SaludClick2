@@ -12,8 +12,8 @@ import jakarta.annotation.PostConstruct;
 @EnableScheduling
 public class SaludClickApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SaludClickApplication.class, args);
+public static void main(String[] args) {
+	SpringApplication.run(SaludClickApplication.class, args);
 	}
 	 @PostConstruct
 	    public void init() {

@@ -20,19 +20,17 @@ public class NotificacionesService {
     private EmailService emailService;
 
     public Notificacion enviarNotificacion(Usuario usuario, String asunto, String estado, String mensaje, Usuario destinatario) {
-        System.out.println("Preparando notificación para el usuario: " + usuario.getEmail());
-
         if (usuario == null || destinatario == null) {
-            System.out.println("Error: Usuario o destinatario es nulo.");
+            System.out.println("usuario o destinatario es nulo :(");
             return null; 
         }
 
         if (asunto == null || asunto.isEmpty()) {
-            System.out.println("Advertencia: El asunto de la notificación está vacío.");
+            System.out.println("el asunto de la notificación está vacío :(");
         }
 
         if (mensaje == null || mensaje.isEmpty()) {
-            System.out.println("Advertencia: El mensaje de la notificación está vacío.");
+            System.out.println("el mensaje de la notificación está vacío :(");
         }
 
         Notificacion notificacion = new Notificacion();
@@ -43,37 +41,33 @@ public class NotificacionesService {
         notificacion.setMensaje(mensaje);
         notificacion.setDestinatario(destinatario);
 
-        System.out.println("Guardando notificación en la base de datos...");
         Notificacion savedNotificacion = notificacionRepository.save(notificacion);
 
         try {
-            System.out.println("Intentando enviar correo de notificación a: " + destinatario.getEmail());
             emailService.notificacionEmail(destinatario.getEmail(), asunto, mensaje);
-            System.out.println("Correo de notificación enviado con éxito.");
+            System.out.println("correo de notificación enviado con éxito :)");
         } catch (MessagingException e) {
-            System.out.println("Error al enviar el correo de notificación: " + e.getMessage());
+            System.out.println("error al enviar el correo de notificación: " + e.getMessage());
         }
 
         return savedNotificacion;
     }
 
     public List<Notificacion> obtenerNotificacionesPorUsuario(Usuario usuario) {
-        System.out.println("Buscando notificaciones enviadas por el usuario: " + usuario.getEmail());
         List<Notificacion> notificaciones = notificacionRepository.findByUsuario(usuario);
 
         if (notificaciones.isEmpty()) {
-            System.out.println("El usuario no tiene notificaciones enviadas.");
+            System.out.println("el usuario no tiene notificaciones enviadas :(");
         }
 
         return notificaciones;
     }
 
     public List<Notificacion> obtenerNotificacionesPorDestinatario(Usuario destinatario) {
-        System.out.println("Buscando notificaciones para el destinatario: " + destinatario.getEmail());
         List<Notificacion> notificaciones = notificacionRepository.findByDestinatario(destinatario);
 
         if (notificaciones.isEmpty()) {
-            System.out.println("El destinatario no tiene notificaciones.");
+            System.out.println("el destinatario no tiene notificaciones.");
         }
 
         return notificaciones;

@@ -50,7 +50,7 @@ public class SecurityConfig {
             })
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        System.out.println("Seguridad configurada.");
+        System.out.println("seguridad configurada.");
         return http.build();
     }
 
@@ -61,7 +61,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        System.out.println("Configurando AuthenticationManager...");
+        System.out.println("Configurando autenticación... :)");
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userDetailsService)
                                      .passwordEncoder(passwordEncoder());

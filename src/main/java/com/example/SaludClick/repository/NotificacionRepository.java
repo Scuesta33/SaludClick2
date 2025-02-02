@@ -7,8 +7,6 @@ import java.util.List;
 
 @Repository
 public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
-    //metodo para buscar notificaciones por el usuario(creador de la notificacion)
 	List<Notificacion> findByUsuario(Usuario usuario);
-    //metodo para buscar notificaciones por el destinatario(usuario que recibe la notificacion)
 	List<Notificacion> findByDestinatario(Usuario destinatario);
 }

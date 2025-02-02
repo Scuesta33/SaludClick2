@@ -19,18 +19,16 @@ public class CitaService implements ICitaService {
 
     @Override
     public Cita crearCita(Cita cita) {
-        System.out.println("Guardando nueva cita en la base de datos...");
         Cita citaGuardada = citaRepository.save(cita);
         return citaGuardada;
     }
 
     @Override
     public Optional<Cita> obtenerCitaPorId(Long id) {
-        System.out.println("Buscando cita con ID: " + id);
         Optional<Cita> citaOpt = citaRepository.findById(id);
 
         if (!citaOpt.isPresent()) {
-            System.out.println("Advertencia: No se encontró ninguna cita con el ID " + id);
+            System.out.println("no se encontró ninguna cita con el ID " + id);
         }
 
         return citaOpt;
@@ -38,11 +36,10 @@ public class CitaService implements ICitaService {
 
     @Override
     public List<Cita> listarCitas() {
-        System.out.println("Recuperando todas las citas...");
         List<Cita> citas = citaRepository.findAll();
 
         if (citas.isEmpty()) {
-            System.out.println("No hay citas registradas en la base de datos.");
+            System.out.println("no hay citas registradas :(");
         }
 
         return citas;
@@ -50,35 +47,31 @@ public class CitaService implements ICitaService {
 
     @Override
     public Cita actualizarCita(Cita cita) {
-        System.out.println("Actualizando información de la cita con ID: " + cita.getIdCita());
         return citaRepository.save(cita);
     }
 
     @Override
     public void eliminarCita(Long id) {
-        System.out.println("Intentando eliminar cita con ID: " + id);
-
         Optional<Cita> citaOpt = citaRepository.findById(id);
         if (!citaOpt.isPresent()) {
-            System.out.println("Error: No se encontró ninguna cita con el ID " + id);
+            System.out.println("no se encontró ninguna cita con el ID " + id);
             return;
         }
 
         try {
             citaRepository.deleteById(id);
-            System.out.println("Cita eliminada exitosamente.");
+            System.out.println("Cita eliminada :)");
         } catch (Exception e) {
-            System.out.println("Error al eliminar la cita: " + e.getMessage());
+            System.out.println("error al eliminar la cita: " + e.getMessage());
         }
     }
 
     @Override
     public List<Cita> listarCitasPorPaciente(String emailPaciente) {
-        System.out.println("Buscando citas del paciente con email: " + emailPaciente);
         List<Cita> citas = citaRepository.findByPaciente_Email(emailPaciente);
 
         if (citas.isEmpty()) {
-            System.out.println("El paciente " + emailPaciente + " no tiene citas registradas.");
+            System.out.println("el paciente " + emailPaciente + " no tiene citas registradas");
         }
 
         return citas;
@@ -86,11 +79,10 @@ public class CitaService implements ICitaService {
 
     @Override
     public List<Cita> listarCitasPorMedico(String emailMedico) {
-        System.out.println("Buscando citas del médico con email: " + emailMedico);
         List<Cita> citas = citaRepository.findByMedico_Email(emailMedico);
 
         if (citas.isEmpty()) {
-            System.out.println("El médico " + emailMedico + " no tiene citas asignadas.");
+            System.out.println("el médico " + emailMedico + " no tiene citas asignadas.");
         }
 
         return citas;

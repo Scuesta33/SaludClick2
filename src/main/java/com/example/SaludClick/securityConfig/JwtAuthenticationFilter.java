@@ -30,31 +30,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        System.out.println("Revisando si hay token en la petición...");
-
         String token = obtenerTokenDesdeHeader(request);
 
         if (token != null) {
-            System.out.println("Token encontrado en la cabecera, validando...");
+            System.out.println("Hemos encotnrrado un token en el encabezado! :)");
 
             try {
                 DecodedJWT decodedJWT = jwtUtils.validateToken(token);
 
                 // Evita procesar un token inválido
                 if (decodedJWT == null) {
-                    System.out.println("Token inválido o expirado. No se puede continuar.");
+                    System.out.println("Token inválido o expirado, lo sentimos :(");
                     chain.doFilter(request, response);
                     return;
                 }
 
                 String username = jwtUtils.extractUsername(decodedJWT);
-                System.out.println("Usuario extraído del token: " + username);
+                System.out.println("usuario extraído del token: " + username);
 
                 // Verifica que el usuario exista en la base de datos
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 
                 if (userDetails == null) { 
-                    System.out.println("Advertencia: No se encontró el usuario en la base de datos.");
+                    System.out.println("no existe este usuario en la base de datos :(");
                     chain.doFilter(request, response);
                     return;
                 }
@@ -64,14 +62,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                System.out.println("Autenticación exitosa para el usuario: " + username);
+                System.out.println("autenticación correcta para el usuario: " + username);
                 
             } catch (Exception e) {
-                System.out.println("Error al validar el token. ¿Está expirado? " + e.getMessage());
+                System.out.println("error al validar el token " + e.getMessage());
                 e.printStackTrace();
             }
         } else {
-            System.out.println("No se encontró un token en el encabezado.");
+            System.out.println("no se encontró un token en el encabezado :(");
         }
 
         chain.doFilter(request, response);
@@ -82,13 +80,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null) {
             if (authorizationHeader.startsWith("Bearer ")) {
-                System.out.println("Token extraído del header.");
-                return authorizationHeader.substring(7); // Quitamos "Bearer "
+                System.out.println("token extraído del header.");
+                return authorizationHeader.substring(7); // quitamos Bearer
             } else {
-                System.out.println("Advertencia: El token no tiene el prefijo esperado.");
+                System.out.println("el token no tiene el prefijo esperado.");
             }
         } else {
-            System.out.println("No hay cabecera de autorización.");
+            System.out.println("no hay cabecera de autorización.");
         }
         return null;
     }

@@ -37,46 +37,38 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthLoginRequestDTO loginRequest) {
-        System.out.println("Intento de login para usuario: " + loginRequest.getEmail());
-
         try {
-            // Autenticar credenciales
-            UsernamePasswordAuthenticationToken authInput = 
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getEmail(), loginRequest.getContrasena()
-                );
+            // Autenticacion
+            UsernamePasswordAuthenticationToken authInput = new UsernamePasswordAuthenticationToken(
+                    loginRequest.getEmail(), loginRequest.getContrasena());
 
             Authentication authentication = authenticationManager.authenticate(authInput);
 
-            // Obtener detalles del usuario desde el servicio
+            // Obtener detalles del usuario 
             UserDetails userDetails = usuarioDetailsServiceImp.loadUserByUsername(loginRequest.getEmail());
 
             // Buscar el usuario en la base de datos
             Usuario usuario = usuarioServiceImp.buscarPorEmail(loginRequest.getEmail()).orElse(null);
 
             if (usuario == null) {
-                System.out.println("Error: Usuario no encontrado en la BD.");
-                return new ResponseEntity<>("Usuario no encontrado", HttpStatus.NOT_FOUND);
+                System.out.println("Usuario no encontrado :(");
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
             // Generar token JWT para el usuario
             String tokenGenerado = jwtUtils.createToken(authentication, usuario.getIdUsuario());
 
             // Construir respuesta con el token y datos del usuario
-            AuthResponseDTO response = new AuthResponseDTO(
-                tokenGenerado, usuario.getEmail(), usuario.getNombre(), usuario.getRol().name()
-            );
+            AuthResponseDTO response = new AuthResponseDTO(tokenGenerado, usuario.getEmail(), usuario.getNombre(),
+                    usuario.getRol().name());
 
-            System.out.println("Usuario autenticado correctamente: " + usuario.getEmail());
+            System.out.println("Usuario autenticado: " + usuario.getEmail());
 
-            // Alternamos el formato de respuesta para evitar que se vea muy estructurado
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            System.out.println("Error en autenticación: " + e.getMessage());
-            
-            // Alternamos el uso de ResponseEntity para no seguir siempre el mismo patrón
-            return new ResponseEntity<>("Credenciales incorrectas, intenta de nuevo", HttpStatus.UNAUTHORIZED);
+            System.out.println("Error en la autenticación: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 }
