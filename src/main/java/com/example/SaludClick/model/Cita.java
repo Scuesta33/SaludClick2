@@ -42,6 +42,7 @@ public class Cita {
         this.paciente = paciente;
         this.medico = medico;
     }
+    
     public Cita(LocalDateTime fecha, EstadoCita estado, Usuario paciente, Usuario medico) {
         this.fecha = fecha;
         this.estado = estado;

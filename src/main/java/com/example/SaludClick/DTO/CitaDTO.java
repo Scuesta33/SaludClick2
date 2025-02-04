@@ -1,7 +1,6 @@
 package com.example.SaludClick.DTO;
 
 import java.time.LocalDateTime;
-
 import com.example.SaludClick.model.Cita.EstadoCita;
 
 public class CitaDTO {

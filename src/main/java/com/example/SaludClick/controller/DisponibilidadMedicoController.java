@@ -27,7 +27,6 @@ public class DisponibilidadMedicoController {
 
     @Autowired
     private DisponibilidadService disponibilidadService;
-
     @Autowired
     private UsuarioServiceImp usuarioServiceImp;
 
@@ -35,25 +34,20 @@ public class DisponibilidadMedicoController {
     public ResponseEntity<?> crearDisponibilidad(@RequestBody List<DisponibilidadMedico> disponibilidades) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
-
         if (!(principal instanceof UserDetails)) {
             System.out.println("usuario no autenticado :(");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-
         UserDetails userDetails = (UserDetails) principal;
         Optional<Usuario> medicoOpt = usuarioServiceImp.buscarPorEmail(userDetails.getUsername());
-
         if (!medicoOpt.isPresent()) {
             System.out.println("Usuario no encontrado, prueba de nuevo :)");
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-
         Usuario medico = medicoOpt.get();
         if (medico.getRol() != Usuario.Rol.MEDICO) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-
         // Crear disponibilidades una por una con ajustes de hora
         for (DisponibilidadMedico disponibilidad : disponibilidades) {
             disponibilidad.setMedico(medico);
@@ -61,11 +55,11 @@ public class DisponibilidadMedicoController {
             disponibilidad.setHoraFin(disponibilidad.getHoraFin().minusHours(1));
             disponibilidadService.crearDisponibilidad(disponibilidad);
         }
-
         System.out.println("Disponibilidad creada ;))");
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    
     @GetMapping("/medico")
     public ResponseEntity<List<DisponibilidadMedico>> obtenerDisponibilidadPorMedico() {
 

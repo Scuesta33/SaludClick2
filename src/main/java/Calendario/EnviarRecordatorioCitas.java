@@ -19,6 +19,7 @@ public class EnviarRecordatorioCitas {
 	@Autowired
 	private EmailService emailService;
 
+	
 	@Scheduled(cron = "0 0 0 * * *") // se ejecuta todos los días a medianoche
 	public void enviarCitasRecordatorio() {
 		LocalDateTime now = LocalDateTime.now();// se obtiene la fecha y hora actual
@@ -28,7 +29,6 @@ public class EnviarRecordatorioCitas {
 		if (citas.isEmpty()) {// si no hay citas no se envia
 			return;
 		}
-
 		try {
 			for (Cita cita : citas) {// va iterando por cada cita
 				if (cita.getFecha() == null) {// si la cita no tiene fecha no se envia
@@ -45,13 +45,12 @@ public class EnviarRecordatorioCitas {
 						String fechaCita = cita.getFecha().toString();
 						emailService.recordatorioCita(email, fechaCita, "Sevilla");
 						contador++;
-
 					} catch (MessagingException e) {
 						e.printStackTrace(); // imprimir error
 					}
 				}
 			}
-		 } catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

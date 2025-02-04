@@ -1,8 +1,8 @@
 package com.example.SaludClick.service;
+
 import java.util.List;
 import java.util.Optional;
 import com.example.SaludClick.model.Cita;
-
 
 public interface ICitaService {
 	Cita crearCita(Cita cita);

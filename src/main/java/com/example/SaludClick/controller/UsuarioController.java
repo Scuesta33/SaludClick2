@@ -32,36 +32,32 @@ public class UsuarioController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    
     @GetMapping("/{email}")
     public ResponseEntity<Usuario> traerUsuarioPorEmail(@PathVariable String email) {
         Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(email);
-
         if (!usuarioOpt.isPresent()) {
             System.out.println("usuario no encontrado :(");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
         return new ResponseEntity<>(usuarioOpt.get(), HttpStatus.OK);
     }
 
+    
     @PatchMapping("/actualizar")
     public ResponseEntity<Usuario> actualizarUsuarioParcial(@RequestBody Map<String, Object> updates) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
-
         if (!(principal instanceof UserDetails)) {
             System.out.println("no autenticado :(");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-
         String email = ((UserDetails) principal).getUsername();
         Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(email);
-
         if (!usuarioOpt.isPresent()) {
             System.out.println("usuario no encontrado.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
         Usuario usuarioExistente = usuarioOpt.get();
         updates.forEach((key, value) -> {
             switch (key) {
@@ -90,11 +86,11 @@ public class UsuarioController {
                     System.out.println("campo desconocido: " + key);
             }
         });
-
         usuarioServiceImp.actualizar(usuarioExistente);
         System.out.println("usuario actualizado :)");
         return new ResponseEntity<>(HttpStatus.OK);
     }
+    
 
     @GetMapping("/datos")
     public ResponseEntity<Usuario> obtenerDatosUsuario(@AuthenticationPrincipal UserDetails userDetails) {
@@ -102,37 +98,31 @@ public class UsuarioController {
             System.out.println("usuario no autenticado :(");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-
         String email = userDetails.getUsername();
         Optional<Usuario> usuarioOpt = usuarioServiceImp.buscarPorEmail(email);
-
         if (!usuarioOpt.isPresent()) {
             System.out.println("usuario no encontrado :(");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
         return new ResponseEntity<>(usuarioOpt.get(), HttpStatus.OK);
     }
 
+    
     @DeleteMapping("/eliminar/{idUsuario}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long idUsuario) {
         // Obtener el email del usuario autenticado
         String emailUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<Usuario> usuarioAutenticadoOpt = usuarioServiceImp.buscarPorEmail(emailUsuarioAutenticado);
-
         if (!usuarioAutenticadoOpt.isPresent()) {
             System.out.println("usuario no autenticado :(");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-
         Usuario usuarioAutenticado = usuarioAutenticadoOpt.get();
-
         // Verificar si el usuario tiene permiso para eliminarse
         if (!usuarioAutenticado.getIdUsuario().equals(idUsuario)) {
             System.out.println("no tienes permiso para eliminar este usuario :(");
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-
         try {
             usuarioServiceImp.eliminar(idUsuario);
             System.out.println("usuario eliminado correctamente :))");

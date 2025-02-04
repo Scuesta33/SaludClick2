@@ -1,9 +1,7 @@
 package com.example.SaludClick.model;
+
 import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+
 // entidad usuario
 @Entity
 public class Usuario {
@@ -24,10 +23,13 @@ public class Usuario {
 
     @Column(nullable = false, unique = true)
     private String email;
-
+    
     private String contrasena;  
+    
     private String telefono;   
-    private String direccion;  
+    
+    private String direccion;
+    
     private Boolean activo;
 
     @Enumerated(EnumType.STRING)

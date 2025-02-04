@@ -1,4 +1,5 @@
 package com.example.SaludClick.repository;
+
 import com.example.SaludClick.model.Notificacion;
 import com.example.SaludClick.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
