@@ -64,4 +64,14 @@ public class NotificacionesService {
         }
         return notificaciones;
     }
+    
+	public Notificacion eliminarNotificacion(Long id) {
+		Notificacion notificacion = notificacionRepository.findById(id).orElse(null);
+		if (notificacion == null) {
+			System.out.println("la notificación no existe :(");
+			return null;
+		}
+		notificacionRepository.delete(notificacion);
+		return notificacion;
+	}
 }

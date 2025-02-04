@@ -207,6 +207,27 @@ public class CitaController {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
         }
+        // Si el médico actualiza la cita, puede aceptarla o rechazarla
+        if (usuario.getRol() == Usuario.Rol.MEDICO) {
+            if (citaDTO.getEstado() == Cita.EstadoCita.ACEPTADA) {
+                cita.setEstado(Cita.EstadoCita.ACEPTADA);
+                try {
+                    emailService.citaAceptadaEmail(cita.getPaciente().getEmail(), cita.getFecha().toString(), "Sevilla");
+                } catch (MessagingException e) {
+                    System.out.println("no se pudo enviar el email de aceptación:(");
+                }
+            } else if (citaDTO.getEstado() == Cita.EstadoCita.RECHAZADA) {
+                cita.setEstado(Cita.EstadoCita.RECHAZADA);
+                try {
+                    emailService.citaRechazadaEmail(cita.getPaciente().getEmail());
+                } catch (MessagingException e) {
+                    System.out.println("no se pudo enviar el email de rechazo:(");
+                }
+            } else {
+                System.out.println("estado de cita no válido");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        }
         // Si solo se actualiza el estado
         if (citaDTO.getFecha() == null) {
             cita.setEstado(citaDTO.getEstado());

@@ -96,4 +96,15 @@ public class NotificacionController {
         }
         return new ResponseEntity<>(notificaciones, HttpStatus.OK);
     }
+    
+    @DeleteMapping("/eliminar/{id}")
+	public ResponseEntity<?> eliminarNotificacion(@PathVariable Long id) {
+		Notificacion notificacion = notificacionesService.eliminarNotificacion(id);
+		if (notificacion == null) {
+			System.out.println("no se pudo eliminar la notificación :(");
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		System.out.println("notificación eliminada :)");
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 }
