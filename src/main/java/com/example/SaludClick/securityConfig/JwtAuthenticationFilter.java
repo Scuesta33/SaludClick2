@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
     }
-
+//metodo que se ejecuta en cada petición y valida el token en el encabezado
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.out.println("Hemos encotnrrado un token en el encabezado! :)");
             try {
                 DecodedJWT decodedJWT = jwtUtils.validateToken(token);
-                // Evita procesar un token inválido
+                // evita procesar un token inválido
                 if (decodedJWT == null) {
                     System.out.println("Token inválido o expirado, lo sentimos :(");
                     chain.doFilter(request, response);
@@ -42,14 +42,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
                 String username = jwtUtils.extractUsername(decodedJWT);
                 System.out.println("usuario extraído del token: " + username);
-                // Verifica que el usuario exista en la base de datos
+                // comprueba que el usuario exista en la base de datos
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (userDetails == null) { 
                     System.out.println("no existe este usuario en la base de datos :(");
                     chain.doFilter(request, response);
                     return;
                 }
-                // Configurar la autenticación en el contexto de seguridad
+                // configura la autenticación
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -64,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    
+    //extrae el token del encabezado de la petición
     private String extractTokenFromHeader(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null) {

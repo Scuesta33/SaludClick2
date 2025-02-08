@@ -16,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+// esta clase configura la seguridad de la aplicación
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -29,10 +30,9 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    
+    //configura las urls que requieren autenticación
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println("Configurando seguridad...");
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
             .authorizeHttpRequests(auth -> {
@@ -54,23 +54,23 @@ public class SecurityConfig {
         return http.build();
     }
 
-    
+    //codifica las contraseñas con bcrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    
+    //el autenticationManeger se encarga de autenticar a los usuarios
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        System.out.println("Configurando autenticación... :)");
+        System.out.println("configurando autenticación... :)");
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userDetailsService)
                                      .passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 
-    
+    //cors se usa para conectar el backend con el frontend
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

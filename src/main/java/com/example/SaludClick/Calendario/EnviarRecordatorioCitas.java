@@ -18,7 +18,7 @@ public class EnviarRecordatorioCitas {
 	@Autowired
 	private EmailService emailService;
 // a esta hora salta el recordatorio, si el dia siguiente hay citas
-	@Scheduled(cron = "0 10 11 * * *", zone = "Europe/Madrid")
+	@Scheduled(cron = "0 55 11 * * *", zone = "Europe/Madrid")
 	public void enviarCitasRecordatorio() {
 		LocalDate mañana = LocalDate.now().plusDays(1);
 		List<Cita> citas = citaService.listarCitas();

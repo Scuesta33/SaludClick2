@@ -18,19 +18,18 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 
 @Component
 public class JwtUtils {
-
+// clave secreta key
     @Value("${security.jwt.private.key}")
     private String secretKey;
-
+// generador del token
     @Value("${security.jwt.user.generator}")
-    private String userGenerator; // Generador del token (issuer)
+    private String userGenerator; 
 
-    private static final long EXPIRATION_TIME_MS = 30 * 60 * 1000; // 30 minutos
-
+    private static final long EXPIRATION_TIME_MS = 30 * 60 * 1000; //30 minutos
+// crea el token con un usuario autenticado
     public String createToken(Authentication authentication, Long userId) {
-        System.out.println("Generando token JWT...");
         if (authentication == null || userId == null) {
-            System.out.println("Autenticación o UserID es nulo.");
+            System.out.println("autenticación o UserID es nulo:(");
             return null;
         }
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
@@ -58,7 +57,7 @@ public class JwtUtils {
         }
     }
 
-    
+    // metodo que valida el token
     public DecodedJWT validateToken(String token) {
         if (token == null || token.trim().isEmpty()) {
             System.out.println("el token es nulo o vacío :(");
@@ -78,7 +77,7 @@ public class JwtUtils {
         }
     }
 
-    
+    // extrae el nombre de usuario del token
     public String extractUsername(DecodedJWT decodedJWT) {
         if (decodedJWT == null) {
             System.out.println("decodedJWT es nulo :(");
@@ -89,7 +88,7 @@ public class JwtUtils {
         return username;
     }
 
-    
+   // extrae el id de usuario del token
     public Long extractUserId(DecodedJWT decodedJWT) {
         if (decodedJWT == null) {
             System.out.println("decodedJWT es nulo :(");
@@ -100,7 +99,7 @@ public class JwtUtils {
         return userId;
     }
     
-
+ 
     public Map<String, Claim> getAllClaims(DecodedJWT decodedJWT) {
         if (decodedJWT == null) {
             System.out.println("decodedJWT es nulo :(");

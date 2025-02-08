@@ -15,10 +15,10 @@ public class EmailService {
 	@Autowired
 	private JavaMailSender mailSender;
 
-	// Método generico para enviar correos
+	//método generico para enviar correos
 	public void enviarEmail(String toEmail, String subject, String htmlContent) {
         if (toEmail == null || toEmail.isEmpty()) {
-            System.out.println("el email del destinatario es inválido.");
+            System.out.println("el email del destinatario es nulo :( ");
             return;
         }
         try {
@@ -41,7 +41,7 @@ public class EmailService {
 
 	
 	// Métodos de envío de correos
-    //con htmlContent se puede enviar un mensaje en formato HTML
+    //con htmlContent 
 	public void emailCitaCreada(String toEmail, String citaFecha, String citaLocation) throws MessagingException {
 		String htmlContent = "<h1>¡Tu cita ha sido creada!</h1>" + "<p><strong>Fecha:</strong> " + citaFecha + "</p>"
 				+ "<p><strong>Ubicación:</strong> " + citaLocation + "</p>";
